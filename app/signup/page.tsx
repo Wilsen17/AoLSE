@@ -8,8 +8,10 @@ import Image from "next/image"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import Navbar from "@/components/navbar"
+import { useRouter } from "next/navigation"
 
 export default function SignupPage() {
+  const router = useRouter()
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -30,6 +32,7 @@ export default function SignupPage() {
     }))
     // Clear error when user types
     if (error) setError("")
+    if (success) setSuccess("")
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -38,7 +41,10 @@ export default function SignupPage() {
     setError("")
     setSuccess("")
 
+    console.log("Submitting signup form...")
+
     try {
+      console.log("Making API request to /api/auth/signup")
       const response = await fetch("/api/auth/signup", {
         method: "POST",
         headers: {
@@ -47,10 +53,19 @@ export default function SignupPage() {
         body: JSON.stringify(formData),
       })
 
+      console.log("Response status:", response.status)
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error("Response error:", errorText)
+        throw new Error(`HTTP ${response.status}: ${errorText}`)
+      }
+
       const data = await response.json()
+      console.log("Response data:", data)
 
       if (response.ok) {
-        setSuccess("Akun berhasil dibuat! Silakan login.")
+        setSuccess("Akun berhasil dibuat! Mengalihkan ke halaman login...")
         // Reset form
         setFormData({
           username: "",
@@ -63,14 +78,14 @@ export default function SignupPage() {
 
         // Redirect to login page after 2 seconds
         setTimeout(() => {
-          window.location.href = "/login"
+          router.push("/login")
         }, 2000)
       } else {
         setError(data.error || "Terjadi kesalahan")
       }
     } catch (error) {
-      console.error("Error:", error)
-      setError("Terjadi kesalahan. Silakan coba lagi.")
+      console.error("Signup error:", error)
+      setError(`Terjadi kesalahan: ${error instanceof Error ? error.message : "Unknown error"}`)
     } finally {
       setIsLoading(false)
     }
@@ -94,7 +109,12 @@ export default function SignupPage() {
                 <Image src="/images/logo.png" alt="Your Daily Meal" width={200} height={100} className="h-auto" />
               </div>
 
-              {error && <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">{error}</div>}
+              {error && (
+                <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+                  <div className="font-bold">Error:</div>
+                  <div className="text-sm">{error}</div>
+                </div>
+              )}
 
               {success && (
                 <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">{success}</div>
@@ -111,9 +131,10 @@ export default function SignupPage() {
                     value={formData.username}
                     onChange={handleChange}
                     className="w-full p-3 border border-gray-300 rounded-lg"
-                    placeholder="Enter your username"
+                    placeholder="Masukkan username"
                     required
                     disabled={isLoading}
+                    minLength={3}
                   />
                 </div>
 
@@ -128,7 +149,7 @@ export default function SignupPage() {
                     value={formData.email}
                     onChange={handleChange}
                     className="w-full p-3 border border-gray-300 rounded-lg"
-                    placeholder="Enter your email"
+                    placeholder="Masukkan email"
                     required
                     disabled={isLoading}
                   />
@@ -145,7 +166,7 @@ export default function SignupPage() {
                     value={formData.phone}
                     onChange={handleChange}
                     className="w-full p-3 border border-gray-300 rounded-lg"
-                    placeholder="Enter your phone number"
+                    placeholder="Masukkan nomor telepon"
                     required
                     disabled={isLoading}
                   />
@@ -161,7 +182,7 @@ export default function SignupPage() {
                     value={formData.address}
                     onChange={handleChange}
                     className="w-full p-3 border border-gray-300 rounded-lg"
-                    placeholder="Enter your address"
+                    placeholder="Masukkan alamat"
                     required
                     disabled={isLoading}
                   />
@@ -178,9 +199,10 @@ export default function SignupPage() {
                     value={formData.password}
                     onChange={handleChange}
                     className="w-full p-3 border border-gray-300 rounded-lg"
-                    placeholder="Enter your password"
+                    placeholder="Masukkan password"
                     required
                     disabled={isLoading}
+                    minLength={6}
                   />
                 </div>
 
@@ -195,9 +217,10 @@ export default function SignupPage() {
                     value={formData.confirmPassword}
                     onChange={handleChange}
                     className="w-full p-3 border border-gray-300 rounded-lg"
-                    placeholder="Confirm your password"
+                    placeholder="Konfirmasi password"
                     required
                     disabled={isLoading}
+                    minLength={6}
                   />
                 </div>
 
@@ -206,15 +229,15 @@ export default function SignupPage() {
                   className="w-full py-3 bg-[#b3a278] hover:bg-[#a39068] text-[#4a5c2f] text-lg font-medium rounded-lg mt-4"
                   disabled={isLoading}
                 >
-                  {isLoading ? "Processing..." : "Sign Up"}
+                  {isLoading ? "Memproses..." : "Sign Up"}
                 </Button>
               </form>
 
               <div className="mt-4 text-center">
                 <p className="text-[#4a5c2f]">
-                  Already have an account?{" "}
+                  Sudah punya akun?{" "}
                   <Link href="/login" className="text-[#4a5c2f] font-bold hover:underline">
-                    Click Here
+                    Login
                   </Link>
                 </p>
               </div>

@@ -2,29 +2,18 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import Navbar from "@/components/navbar"
-import { useRouter } from "next/navigation"
 
 export default function LoginPage() {
-  const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
-  const [redirectPath, setRedirectPath] = useState<string | null>(null)
-
-  useEffect(() => {
-    // Check if there's a redirect path stored
-    const storedRedirect = localStorage.getItem("redirectAfterLogin")
-    if (storedRedirect) {
-      setRedirectPath(storedRedirect)
-    }
-  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -45,29 +34,14 @@ export default function LoginPage() {
       if (response.ok) {
         // Store user data in localStorage
         localStorage.setItem("user", JSON.stringify(data.user))
-
-        // Show success message briefly
-        alert("Login berhasil! Selamat datang.")
-
-        // Check if there's a redirect path
-        if (redirectPath) {
-          localStorage.removeItem("redirectAfterLogin") // Clear the redirect path
-          router.push(redirectPath)
-        } else {
-          // Default redirect to home
-          router.push("/")
-        }
-
-        // Force page refresh to update navbar
-        setTimeout(() => {
-          window.location.reload()
-        }, 100)
+        // Redirect to home
+        window.location.href = "/"
       } else {
         setError(data.error || "Login gagal")
       }
     } catch (error) {
       console.error("Error:", error)
-      setError("Terjadi kesalahan jaringan. Silakan coba lagi.")
+      setError("Terjadi kesalahan. Silakan coba lagi.")
     } finally {
       setIsLoading(false)
     }
@@ -91,12 +65,6 @@ export default function LoginPage() {
                 <Image src="/images/logo.png" alt="Your Daily Meal" width={200} height={100} className="h-auto" />
               </div>
 
-              {redirectPath && (
-                <div className="mb-4 p-3 bg-blue-100 border border-blue-400 text-blue-700 rounded">
-                  Silakan login untuk melanjutkan
-                </div>
-              )}
-
               {error && <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">{error}</div>}
 
               <form onSubmit={handleSubmit} className="space-y-6">
@@ -113,7 +81,7 @@ export default function LoginPage() {
                       if (error) setError("")
                     }}
                     className="w-full p-3 border border-gray-300 rounded-lg"
-                    placeholder="Masukkan email"
+                    placeholder="Enter your email"
                     required
                     disabled={isLoading}
                   />
@@ -132,7 +100,7 @@ export default function LoginPage() {
                       if (error) setError("")
                     }}
                     className="w-full p-3 border border-gray-300 rounded-lg"
-                    placeholder="Masukkan password"
+                    placeholder="Enter your password"
                     required
                     disabled={isLoading}
                   />
@@ -140,7 +108,7 @@ export default function LoginPage() {
 
                 <div className="text-right">
                   <Link href="/forgot-password" className="text-[#4a5c2f] hover:underline">
-                    Lupa password?
+                    Forgot password?
                   </Link>
                 </div>
 
@@ -149,15 +117,15 @@ export default function LoginPage() {
                   className="w-full py-3 bg-[#b3a278] hover:bg-[#a39068] text-[#4a5c2f] text-lg font-medium rounded-lg"
                   disabled={isLoading}
                 >
-                  {isLoading ? "Memproses..." : "Log In"}
+                  {isLoading ? "Processing..." : "Log In"}
                 </Button>
               </form>
 
               <div className="mt-6 text-center">
                 <p className="text-[#4a5c2f]">
-                  Belum punya akun?{" "}
+                  Don&apos;t have an account?{" "}
                   <Link href="/signup" className="text-[#4a5c2f] font-bold hover:underline">
-                    Daftar
+                    Sign Up
                   </Link>
                 </p>
               </div>

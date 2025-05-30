@@ -3,12 +3,10 @@
 import Link from "next/link"
 import Image from "next/image"
 import { useEffect, useState } from "react"
-import { usePathname } from "next/navigation"
 
 export default function Navbar() {
   const [user, setUser] = useState<any>(null)
   const [showDropdown, setShowDropdown] = useState(false)
-  const pathname = usePathname()
 
   useEffect(() => {
     // Check if user is logged in
@@ -32,45 +30,20 @@ export default function Navbar() {
           <Image src="/images/logo.png" alt="Your Daily Meal" width={150} height={70} className="h-auto" />
         </Link>
         <nav className="hidden md:flex items-center space-x-10">
-          <Link
-            href="/"
-            className={`text-xl font-medium transition-colors duration-200 ${
-              pathname === "/" ? "text-white" : "text-[#4a5c2f] hover:text-white"
-            }`}
-          >
+          <Link href="/" className="text-[#4a5c2f] text-xl font-medium hover:text-[#3a4a25]">
             Home
           </Link>
-          <Link
-            href="/about"
-            className={`text-xl font-medium transition-colors duration-200 ${
-              pathname === "/about" ? "text-white" : "text-[#4a5c2f] hover:text-white"
-            }`}
-          >
+          <Link href="/about" className="text-[#4a5c2f] text-xl font-medium hover:text-[#3a4a25]">
             About
           </Link>
-          <Link
-            href="/menu"
-            className={`text-xl font-medium transition-colors duration-200 ${
-              pathname === "/menu" ? "text-white" : "text-[#4a5c2f] hover:text-white"
-            }`}
-          >
+          <Link href="/menu" className="text-[#4a5c2f] text-xl font-medium hover:text-[#3a4a25]">
             Menu
           </Link>
-          <Link
-            href="/location"
-            className={`text-xl font-medium transition-colors duration-200 ${
-              pathname === "/location" ? "text-white" : "text-[#4a5c2f] hover:text-white"
-            }`}
-          >
+          <Link href="/location" className="text-[#4a5c2f] text-xl font-medium hover:text-[#3a4a25]">
             Location
           </Link>
           {user && (
-            <Link
-              href="/history"
-              className={`text-xl font-medium transition-colors duration-200 ${
-                pathname === "/history" ? "text-white" : "text-[#4a5c2f] hover:text-white"
-              }`}
-            >
+            <Link href="/history" className="text-[#4a5c2f] text-xl font-medium hover:text-[#3a4a25]">
               History
             </Link>
           )}
@@ -80,20 +53,8 @@ export default function Navbar() {
                 onClick={() => setShowDropdown(!showDropdown)}
                 className="flex items-center space-x-2 focus:outline-none"
               >
-                <div className="w-10 h-10 bg-[#7a8c4f] rounded-full flex items-center justify-center text-white font-bold text-lg overflow-hidden">
-                  {user.profilePicture ? (
-                    <Image
-                      src={user.profilePicture || "/placeholder.svg"}
-                      alt="Profile"
-                      width={40}
-                      height={40}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : user.username ? (
-                    user.username.charAt(0).toUpperCase()
-                  ) : (
-                    "U"
-                  )}
+                <div className="w-10 h-10 bg-[#7a8c4f] rounded-full flex items-center justify-center text-white font-bold text-lg">
+                  {user.username ? user.username.charAt(0).toUpperCase() : "U"}
                 </div>
               </button>
 
@@ -108,7 +69,7 @@ export default function Navbar() {
                     className="block px-4 py-2 text-sm text-[#4a5c2f] hover:bg-gray-100"
                     onClick={() => setShowDropdown(false)}
                   >
-                    Edit Profile
+                    Profile
                   </Link>
                   <button
                     onClick={handleLogout}

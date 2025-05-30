@@ -171,39 +171,40 @@ export default function AboutPage() {
       ></div>
 
       {/* Visi Misi Section */}
-      <section className="bg-[#7a8c4f] py-16 px-6">
-        <div className="w-full px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            {/* Visi */}
-            <div className="bg-[#AC9362] justify-center items-center min-h-[300px] rounded-lg p-8 shadow-lg text-center">
-              <h3 className="text-3xl font-bold text-[#4a5c2f] bg-[#f8f4e3] inline-block px-4 py-2 rounded-md shadow-md mb-4">
-                Visi
-              </h3>
-              <p className="text-[#4a5c2f] text-lg leading-relaxed">
-                Menjadi penyedia layanan catering terdepan di Indonesia yang mengutamakan kualitas, kesehatan, dan
-                kepuasan pelanggan. Kami berkomitmen untuk menjadi bagian dari gaya hidup sehat masyarakat Indonesia
-                melalui penyediaan makanan bergizi yang praktis dan terjangkau.
-              </p>
-            </div>
+     <section className="bg-[#7a8c4f] py-16 px-6">
+      <div className="w-full px-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          {/* Visi */}
+          <div className="bg-[#AC9362] justify-center items-center min-h-[300px] rounded-lg p-8 shadow-lg text-center">
+            <h3 className="text-3xl font-bold text-[#4a5c2f] bg-[#f8f4e3] inline-block px-4 py-2 rounded-md shadow-md mb-4">
+              Visi
+            </h3>
+            <p className="text-[#4a5c2f] text-lg leading-relaxed">
+              Menjadi penyedia layanan catering terdepan di Indonesia yang mengutamakan kualitas, kesehatan, dan
+              kepuasan pelanggan. Kami berkomitmen untuk menjadi bagian dari gaya hidup sehat masyarakat Indonesia
+              melalui penyediaan makanan bergizi yang praktis dan terjangkau.
+            </p>
+          </div>
+          
 
-            {/* Misi */}
-            <div className="bg-[#AC9362] flex flex-col justify-center items-center min-h-[300px] rounded-lg p-8 shadow-lg text-center">
-              <h3 className="text-3xl font-bold text-[#4a5c2f] bg-[#f8f4e3] inline-block px-4 py-2 rounded-md shadow-md mb-4">
-                Misi
-              </h3>
-              <ul className="text-[#4a5c2f] text-lg leading-relaxed space-y-3 text-left">
-                <li>• Menyediakan makanan sehat bergizi dengan cita rasa autentik Indonesia</li>
-                <li>• Menggunakan bahan-bahan segar dan berkualitas tinggi</li>
-                <li>• Memberikan layanan pengantaran yang tepat waktu dan terpercaya</li>
-                <li>• Menerapkan standar kebersihan dan keamanan pangan yang tinggi</li>
-                <li>• Berinovasi secara berkelanjutan dalam menu dan layanan</li>
-                <li>• Mendukung ekonomi lokal melalui kemitraan dengan petani dan supplier lokal</li>
-                <li>• Mewujudkan gaya hidup sehat yang mudah diakses oleh semua kalangan</li>
-              </ul>
-            </div>
+          {/* Misi */}
+          <div className="bg-[#AC9362] flex flex-col justify-center items-center min-h-[300px] rounded-lg p-8 shadow-lg text-center">
+            <h3 className="text-3xl font-bold text-[#4a5c2f] bg-[#f8f4e3] inline-block px-4 py-2 rounded-md shadow-md mb-4">
+              Misi
+            </h3>
+            <ul className="text-[#4a5c2f] text-lg leading-relaxed space-y-3 text-left">
+              <li>• Menyediakan makanan sehat bergizi dengan cita rasa autentik Indonesia</li>
+              <li>• Menggunakan bahan-bahan segar dan berkualitas tinggi</li>
+              <li>• Memberikan layanan pengantaran yang tepat waktu dan terpercaya</li>
+              <li>• Menerapkan standar kebersihan dan keamanan pangan yang tinggi</li>
+              <li>• Berinovasi secara berkelanjutan dalam menu dan layanan</li>
+              <li>• Mendukung ekonomi lokal melalui kemitraan dengan petani dan supplier lokal</li>
+              <li>• Mewujudkan gaya hidup sehat yang mudah diakses oleh semua kalangan</li>
+            </ul>
           </div>
         </div>
-      </section>
+      </div>
+    </section>
 
       <div
         className="h-16"
@@ -228,7 +229,7 @@ export default function AboutPage() {
               </div>
             </div>
             <div className="flex space-x-4">
-              <a href="https://wa.me/62895639201682" target="_blank" rel="noopener noreferrer">
+              <a href="https://wa.me/0895639201682" target="_blank" rel="noopener noreferrer">
                 <div className="w-8 h-8 bg-[#4a5c2f] rounded-full flex items-center justify-center">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"

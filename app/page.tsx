@@ -6,21 +6,12 @@ import Navbar from "@/components/navbar"
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import OrderStatus from "@/components/order-status"
-import { useRouter } from "next/navigation"
-import ThankYouPopup from "@/components/thank-you-popup"
-
-interface ActiveOrder {
-  id: string
-  status: "placed" | "cooking" | "delivery" | "completed"
-}
 
 export default function HomePage() {
-  const router = useRouter()
   const [user, setUser] = useState<any>(null)
   const [hasActiveOrder, setHasActiveOrder] = useState(false)
-  const [activeOrder, setActiveOrder] = useState<ActiveOrder | null>(null)
-  const [showThankYouPopup, setShowThankYouPopup] = useState(false)
-  const [completedOrderId, setCompletedOrderId] = useState("")
+  const [orderStatus, setOrderStatus] = useState<"placed" | "cooking" | "delivery" | "completed">("cooking")
+  const [orderId, setOrderId] = useState("ORD-003")
 
   useEffect(() => {
     // Check if user is logged in
@@ -28,38 +19,8 @@ export default function HomePage() {
     if (userData) {
       setUser(JSON.parse(userData))
 
-      // Check for active order
-      const storedActiveOrder = localStorage.getItem("activeOrder")
-      if (storedActiveOrder) {
-        try {
-          const parsedOrder = JSON.parse(storedActiveOrder)
-          setActiveOrder(parsedOrder)
-          setHasActiveOrder(true)
-        } catch (e) {
-          console.error("Error parsing active order:", e)
-
-          // Mock active order if error
-          setActiveOrder({
-            id: "ORD-003",
-            status: "cooking",
-          })
-          setHasActiveOrder(true)
-        }
-      } else {
-        // No active order in localStorage
-        setHasActiveOrder(false)
-        setActiveOrder(null)
-      }
-    }
-  }, [])
-
-  useEffect(() => {
-    // Check for completed order from checkout
-    const completedOrder = localStorage.getItem("completedOrder")
-    if (completedOrder) {
-      setCompletedOrderId(completedOrder)
-      setShowThankYouPopup(true)
-      localStorage.removeItem("completedOrder") // Clear it after showing
+      // Mock active order - in real app, this would come from API
+      setHasActiveOrder(true)
     }
   }, [])
 
@@ -209,10 +170,7 @@ export default function HomePage() {
                 <p className="text-xl font-medium">Tempe Orek</p>
               </div>
 
-              <Button
-                onClick={() => router.push("/menu")}
-                className="bg-[#7a8c4f] hover:bg-[#5a6c3f] text-white px-8 py-3 text-lg rounded-lg"
-              >
+              <Button className="bg-[#7a8c4f] hover:bg-[#5a6c3f] text-white px-8 py-3 text-lg rounded-lg">
                 View More
               </Button>
             </div>
@@ -327,26 +285,12 @@ export default function HomePage() {
           <div className="flex-1 flex flex-col items-center md:items-start justify-center text-center md:text-left text-[#4a3f2d]">
             <h2 className="text-4xl font-bold mb-4">Siap praktis bareng kita ?</h2>
             <p className="text-xl mb-6">Klik order sekarang juga</p>
-            <Button
-              onClick={() => (user ? router.push("/menu") : router.push("/login"))}
-              className="bg-[#7a8c4f] hover:bg-[#6a7c3e] text-white font-semibold text-lg px-6 py-3 rounded-lg shadow-md"
-            >
+            <button className="bg-[#7a8c4f] hover:bg-[#6a7c3e] text-white font-semibold text-lg px-6 py-3 rounded-lg shadow-md">
               Order Here
-            </Button>
+            </button>
 
             {/* Order Status - Only shown for logged in users with active orders */}
-            {user && (
-              <div className="mt-8">
-                {hasActiveOrder && activeOrder ? (
-                  <OrderStatus currentStatus={activeOrder.status} orderId={activeOrder.id} />
-                ) : (
-                  <div className="text-center text-[#4a3f2d] mt-6">
-                    <p className="text-lg font-medium">Belum ada pesanan aktif</p>
-                    <p className="text-sm">Silakan pesan makanan untuk melihat status pesanan</p>
-                  </div>
-                )}
-              </div>
-            )}
+            {user && hasActiveOrder && <OrderStatus currentStatus={orderStatus} orderId={orderId} />}
           </div>
 
           {/* Image Section */}
@@ -382,7 +326,7 @@ export default function HomePage() {
               </div>
             </div>
             <div className="flex space-x-4">
-              <a href="https://wa.me/62895639201682" target="_blank" rel="noopener noreferrer">
+              <a href="https://wa.me/0895639201682" target="_blank" rel="noopener noreferrer">
                 <div className="w-8 h-8 bg-[#4a5c2f] rounded-full flex items-center justify-center">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -437,12 +381,6 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
-      {/* Thank You Popup */}
-      <ThankYouPopup
-        isOpen={showThankYouPopup}
-        onClose={() => setShowThankYouPopup(false)}
-        orderId={completedOrderId}
-      />
     </div>
   )
 }

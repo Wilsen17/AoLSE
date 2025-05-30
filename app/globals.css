@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #f8f3e2;
+  --foreground: #4a5c2f;
+  --primary: #7a8c4f;
+  --primary-foreground: #ffffff;
+  --secondary: #b3a278;
+  --secondary-foreground: #4a5c2f;
+  --accent: #5a6c3f;
+  --accent-foreground: #ffffff;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}

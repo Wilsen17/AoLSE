@@ -28,6 +28,8 @@ export default function CheckoutPage() {
   const [user, setUser] = useState<any>(null)
   const [cartItems, setCartItems] = useState<CartItem[]>([])
   const [deliveryAddress, setDeliveryAddress] = useState("")
+  const [tempDeliveryAddress, setTempDeliveryAddress] = useState("")
+  const [isEditingAddress, setIsEditingAddress] = useState(false)
   const [selectedVoucher, setSelectedVoucher] = useState<Voucher | null>(null)
   const [showVoucherDropdown, setShowVoucherDropdown] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
@@ -59,6 +61,7 @@ export default function CheckoutPage() {
     // Set delivery address from user data
     if (userObj.address) {
       setDeliveryAddress(userObj.address)
+      setTempDeliveryAddress(userObj.address) // Set temporary address same as permanent
     }
 
     // Get cart items from localStorage
@@ -203,6 +206,19 @@ export default function CheckoutPage() {
     router.push("/")
   }
 
+  const handleEditAddress = () => {
+    setIsEditingAddress(true)
+  }
+
+  const handleSaveAddress = () => {
+    setIsEditingAddress(false)
+  }
+
+  const handleCancelEditAddress = () => {
+    setTempDeliveryAddress(deliveryAddress) // Reset to original address
+    setIsEditingAddress(false)
+  }
+
   if (isLoading) {
     return (
       <div className="flex flex-col min-h-screen">
@@ -250,11 +266,46 @@ export default function CheckoutPage() {
             </div>
 
             <div className="bg-[#DDB04E] rounded-2xl p-4 flex justify-between items-center">
-              <span className="text-[#4a5c2f] font-medium text-lg">{deliveryAddress}</span>
-              <button className="text-[#4a5c2f] hover:text-[#7a8c4f]">
-                <Edit2 size={20} />
-              </button>
+              {isEditingAddress ? (
+                <div className="flex-1 flex items-center gap-3">
+                  <input
+                    type="text"
+                    value={tempDeliveryAddress}
+                    onChange={(e) => setTempDeliveryAddress(e.target.value)}
+                    className="flex-1 text-[#4a5c2f] font-medium text-lg bg-white rounded-lg px-3 py-2 border border-gray-300 focus:outline-none focus:border-[#7a8c4f]"
+                    placeholder="Masukkan alamat pengiriman"
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleSaveAddress}
+                      className="bg-[#7a8c4f] hover:bg-[#5a6c3f] text-white px-4 py-2 rounded-lg text-sm font-medium"
+                    >
+                      Simpan
+                    </button>
+                    <button
+                      onClick={handleCancelEditAddress}
+                      className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-medium"
+                    >
+                      Batal
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <span className="text-[#4a5c2f] font-medium text-lg">{tempDeliveryAddress}</span>
+                  <button onClick={handleEditAddress} className="text-[#4a5c2f] hover:text-[#7a8c4f] transition-colors">
+                    <Edit2 size={20} />
+                  </button>
+                </>
+              )}
             </div>
+
+            {isEditingAddress && (
+              <p className="text-sm text-gray-600 mt-2">
+                * Perubahan alamat hanya berlaku untuk pesanan ini. Untuk mengubah alamat permanen, silakan edit di
+                halaman profile.
+              </p>
+            )}
           </div>
 
           {/* Order Items Section */}

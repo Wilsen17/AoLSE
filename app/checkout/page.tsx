@@ -206,15 +206,15 @@ export default function CheckoutPage() {
     router.push("/")
   }
 
-  const handleEditAddress = () => {
+  const handleEditAddress = (): void => {
     setIsEditingAddress(true)
   }
 
-  const handleSaveAddress = () => {
+  const handleSaveAddress = (): void => {
     setIsEditingAddress(false)
   }
 
-  const handleCancelEditAddress = () => {
+  const handleCancelEditAddress = (): void => {
     setTempDeliveryAddress(deliveryAddress) // Reset to original address
     setIsEditingAddress(false)
   }

@@ -159,7 +159,9 @@ export default function CartPage() {
           </div>
 
           {/* Cart Title */}
-          <h1 className="text-3xl font-bold text-[#4a5c2f] bg-[#f8f4e3] px-8 py-4 rounded-2xl shadow-lg text-center mb-8 w-fit mx-auto">Keranjang Saya</h1>
+          <h1 className="text-3xl font-bold text-[#4a5c2f] bg-[#f8f4e3] px-8 py-4 rounded-2xl shadow-lg text-center mb-8 w-fit mx-auto">
+            Keranjang Saya
+          </h1>
           {cartItems.length === 0 ? (
             <div className="bg-[#DDB04E] rounded-2xl p-8 text-center">
               <p className="text-[#4a5c2f] text-xl font-medium">Keranjang belanja Anda kosong</p>
@@ -179,7 +181,7 @@ export default function CartPage() {
                     {/* Food Image */}
                     <div className="relative w-32 h-32 rounded-lg overflow-hidden flex-shrink-0">
                       <Image
-                        src={item.image || "/placeholder.svg"}
+                        src={item.image || "/placeholder.svg?height=128&width=128"}
                         alt={item.name}
                         fill
                         className="object-cover"

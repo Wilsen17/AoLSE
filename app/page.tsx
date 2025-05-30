@@ -365,10 +365,14 @@ export default function HomePage() {
                   <div className="flex-shrink-0">
                     <div className="relative w-64 h-64 rounded-2xl overflow-hidden shadow-xl">
                       <Image
-                        src={currentTestimonial.photo || "/placeholder.svg"}
+                        src={currentTestimonial.photo || "/placeholder.svg?height=256&width=256"}
                         alt={currentTestimonial.name}
                         fill
                         className="object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement
+                          target.src = "/placeholder.svg?height=256&width=256"
+                        }}
                       />
                     </div>
                     <h3 className="text-3xl font-bold text-[#7a8c4f] mt-4 text-center">{currentTestimonial.name}</h3>
@@ -384,10 +388,14 @@ export default function HomePage() {
                           <div className="text-center">
                             <div className="relative w-32 h-32 mx-auto mb-4 rounded-2xl overflow-hidden shadow-lg">
                               <Image
-                                src={currentTestimonial.reviews[0].image || "/placeholder.svg"}
+                                src={currentTestimonial.reviews[0].image || "/placeholder.svg?height=128&width=128"}
                                 alt={currentTestimonial.reviews[0].alt}
                                 fill
                                 className="object-cover"
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement
+                                  target.src = "/placeholder.svg?height=128&width=128"
+                                }}
                               />
                             </div>
                             <p className="text-sm text-[#4a5c2f] leading-relaxed max-w-40">
@@ -397,10 +405,14 @@ export default function HomePage() {
                           <div className="text-center">
                             <div className="relative w-32 h-32 mx-auto mb-4 rounded-2xl overflow-hidden shadow-lg">
                               <Image
-                                src={currentTestimonial.reviews[1].image || "/placeholder.svg"}
+                                src={currentTestimonial.reviews[1].image || "/placeholder.svg?height=128&width=128"}
                                 alt={currentTestimonial.reviews[1].alt}
                                 fill
                                 className="object-cover"
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement
+                                  target.src = "/placeholder.svg?height=128&width=128"
+                                }}
                               />
                             </div>
                             <p className="text-sm text-[#4a5c2f] leading-relaxed max-w-40">
@@ -412,10 +424,14 @@ export default function HomePage() {
                         <div className="text-center">
                           <div className="relative w-32 h-32 mx-auto mb-4 rounded-2xl overflow-hidden shadow-lg">
                             <Image
-                              src={currentTestimonial.reviews[2].image || "/placeholder.svg"}
+                              src={currentTestimonial.reviews[2].image || "/placeholder.svg?height=128&width=128"}
                               alt={currentTestimonial.reviews[2].alt}
                               fill
                               className="object-cover"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement
+                                target.src = "/placeholder.svg?height=128&width=128"
+                              }}
                             />
                           </div>
                           <p className="text-sm text-[#4a5c2f] leading-relaxed max-w-40">
@@ -430,10 +446,14 @@ export default function HomePage() {
                           <div key={index} className="text-center">
                             <div className="relative w-32 h-32 mx-auto mb-4 rounded-2xl overflow-hidden shadow-lg">
                               <Image
-                                src={review.image || "/placeholder.svg"}
+                                src={review.image || "/placeholder.svg?height=128&width=128"}
                                 alt={review.alt}
                                 fill
                                 className="object-cover"
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement
+                                  target.src = "/placeholder.svg?height=128&width=128"
+                                }}
                               />
                             </div>
                             <p className="text-sm text-[#4a5c2f] leading-relaxed">{review.text}</p>

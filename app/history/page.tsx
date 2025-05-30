@@ -274,13 +274,13 @@ export default function HistoryPage() {
     const availableItems: OrderItem[] = []
     const unavailableItems: OrderItem[] = []
 
-    order.items.forEach((item) => {
+    order.items.forEach((item: OrderItem) => {
       const availableItem = findItemInTodayMenu(item.id, item.name)
       if (availableItem) {
         availableItems.push({
           ...item,
           price: availableItem.price, // Use current price
-          image: availableItem.image,
+          image: availableItem.image || "/placeholder.svg?height=48&width=48",
         })
       } else {
         unavailableItems.push(item)
@@ -392,13 +392,13 @@ export default function HistoryPage() {
                               <div key={`${order.id}-${idx}`} className="flex items-center gap-3">
                                 <div className="relative w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
                                   <Image
-                                    src={item.image || "/images/food-image.png"}
+                                    src={item.image || "/placeholder.svg?height=48&width=48"}
                                     alt={item.name}
                                     fill
                                     className="object-cover"
                                     onError={(e) => {
                                       const target = e.target as HTMLImageElement
-                                      target.src = "/images/food-image.png"
+                                      target.src = "/placeholder.svg?height=48&width=48"
                                     }}
                                   />
                                 </div>

@@ -400,7 +400,7 @@ export default function MenuPage() {
                           {/* Item Image */}
                           <div className="relative h-32 w-full">
                             <Image
-                              src={item.image || "/placeholder.svg"}
+                              src={item.image || "/placeholder.svg?height=128&width=128"}
                               alt={item.name}
                               fill
                               className="object-cover"
@@ -457,7 +457,7 @@ export default function MenuPage() {
                   </div>
                   <div className="relative h-40 w-full">
                     <Image
-                      src={item.image || "/placeholder.svg"}
+                      src={item.image || "/placeholder.svg?height=160&width=160"}
                       alt={item.name}
                       fill
                       className="object-cover"

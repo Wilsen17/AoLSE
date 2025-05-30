@@ -80,12 +80,17 @@ export default function ProfilePage() {
 
       const reader = new FileReader()
       reader.onload = (e) => {
-        const base64String = e.target?.result as string
-        setFormData((prev) => ({
-          ...prev,
-          profilePicture: base64String,
-        }))
-        setImageError(false) // Reset image error when new image is loaded
+        const result = e.target?.result
+        if (typeof result === "string") {
+          setFormData((prev) => ({
+            ...prev,
+            profilePicture: result,
+          }))
+          setImageError(false)
+        }
+      }
+      reader.onerror = () => {
+        alert("Gagal membaca file. Silakan coba lagi.")
       }
       reader.readAsDataURL(file)
     }

@@ -76,9 +76,9 @@ export default function SignupPage() {
           confirmPassword: "",
         })
 
-        // Redirect to login page after 2 seconds
+        // Redirect to login page with success parameter
         setTimeout(() => {
-          router.push("/login")
+          router.push("/login?signup=success")
         }, 2000)
       } else {
         setError(data.error || "Terjadi kesalahan")

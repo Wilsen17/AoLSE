@@ -8,15 +8,18 @@ import Image from "next/image"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import Navbar from "@/components/navbar"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 
 export default function LoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const signupSuccess = searchParams.get("signup") === "success"
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const [redirectPath, setRedirectPath] = useState<string | null>(null)
+  const [showSignupSuccess, setShowSignupSuccess] = useState(signupSuccess)
 
   useEffect(() => {
     // Check if there's a redirect path stored
@@ -24,7 +27,15 @@ export default function LoginPage() {
     if (storedRedirect) {
       setRedirectPath(storedRedirect)
     }
-  }, [])
+
+    // Hide signup success message after 5 seconds
+    if (signupSuccess) {
+      const timer = setTimeout(() => {
+        setShowSignupSuccess(false)
+      }, 5000)
+      return () => clearTimeout(timer)
+    }
+  }, [signupSuccess])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -90,6 +101,15 @@ export default function LoginPage() {
               <div className="flex justify-center mb-6">
                 <Image src="/images/logo.png" alt="Your Daily Meal" width={200} height={100} className="h-auto" />
               </div>
+
+              {showSignupSuccess && (
+                <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
+                  <div className="font-bold">Signup Berhasil!</div>
+                  <div className="text-sm">
+                    Akun Anda telah berhasil dibuat. Silakan login dengan email dan password Anda.
+                  </div>
+                </div>
+              )}
 
               {error && <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">{error}</div>}
 

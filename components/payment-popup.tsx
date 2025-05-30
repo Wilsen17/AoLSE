@@ -88,8 +88,10 @@ export default function PaymentPopup({ isOpen, onClose, onSubmit, totalAmount }:
             </label>
             <input id="payment-proof" type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
             {paymentProof && (
-              <div className="mt-2 p-2 bg-green-100 rounded-lg">
-                <p className="text-sm text-green-800 font-medium">✓ File uploaded: {paymentProof.name}</p>
+              <div className="mt-2 flex justify-center">
+                <div className="p-2 bg-green-100 rounded-lg inline-block">
+                  <p className="text-sm text-green-800 font-medium">✓ File uploaded: {paymentProof.name}</p>
+                </div>
               </div>
             )}
             {!paymentProof && <p className="text-sm text-red-600 mt-2">* Bukti pembayaran wajib diupload</p>}

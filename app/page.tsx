@@ -14,6 +14,17 @@ interface ActiveOrder {
   status: "placed" | "cooking" | "delivery" | "completed"
 }
 
+interface Testimonial {
+  id: number
+  name: string
+  photo: string
+  reviews: {
+    image: string
+    text: string
+    alt: string
+  }[]
+}
+
 export default function HomePage() {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)
@@ -21,6 +32,62 @@ export default function HomePage() {
   const [activeOrder, setActiveOrder] = useState<ActiveOrder | null>(null)
   const [showThankYouPopup, setShowThankYouPopup] = useState(false)
   const [completedOrderId, setCompletedOrderId] = useState("")
+  const [currentTestimonialIndex, setCurrentTestimonialIndex] = useState(0)
+  const [isAnimating, setIsAnimating] = useState(false)
+  const [slideDirection, setSlideDirection] = useState<"left" | "right" | null>(null)
+
+  // Testimonials data
+  const testimonials: Testimonial[] = [
+    {
+      id: 1,
+      name: "Ferdinand Wangsa",
+      photo: "/images/ferdinand-wangsa.png",
+      reviews: [
+        {
+          image: "/images/nasi-goreng.png",
+          text: "Nasi gorengnya super smoky saya jadi tidak bisa stop makan 😍😍",
+          alt: "Nasi Goreng",
+        },
+        {
+          image: "/images/capcay.png",
+          text: "Capcaynya lezat dan bergizi mengingatkan saya dengan masakan ibu 🥰🥰",
+          alt: "Capcay",
+        },
+        {
+          image: "/images/sayur-hijau.png",
+          text: "Tingkat kematangan ayam sempurna dan cabe ijonya sangat lezat 😋❤️",
+          alt: "Sayur Hijau",
+        },
+        {
+          image: "/images/tempe-goreng.png",
+          text: "Benar-benar nikmat!! tempenya seperti dimasak oleh Gordon Ramsey 🤩🤩",
+          alt: "Tempe Goreng",
+        },
+      ],
+    },
+    {
+      id: 2,
+      name: "Thomas Wongso",
+      photo: "/images/thomas-wongso.jpg",
+      reviews: [
+        {
+          image: "/images/tongseng-sapi.png",
+          text: "Tongseng sapinya juara banget! Bumbu meresap sempurna dan dagingnya empuk 🤤🔥",
+          alt: "Tongseng Sapi",
+        },
+        {
+          image: "/images/nila-cabe-ijo.png",
+          text: "Nila cabe ijonya fresh dan pedasnya pas banget di lidah! Nagih terus 🌶️😋",
+          alt: "Nila Cabe Ijo",
+        },
+        {
+          image: "/images/sayur-lodeh.png",
+          text: "Sayur lodehnya creamy dan sayurannya segar, bikin kangen kampung halaman 🥥💚",
+          alt: "Sayur Lodeh",
+        },
+      ],
+    },
+  ]
 
   useEffect(() => {
     // Check if user is logged in
@@ -62,6 +129,41 @@ export default function HomePage() {
       localStorage.removeItem("completedOrder") // Clear it after showing
     }
   }, [])
+
+  const handlePrevTestimonial = () => {
+    if (isAnimating) return
+    setIsAnimating(true)
+    setSlideDirection("right")
+    setTimeout(() => {
+      setCurrentTestimonialIndex((prev) => (prev === 0 ? testimonials.length - 1 : prev - 1))
+      setIsAnimating(false)
+      setSlideDirection(null)
+    }, 300)
+  }
+
+  const handleNextTestimonial = () => {
+    if (isAnimating) return
+    setIsAnimating(true)
+    setSlideDirection("left")
+    setTimeout(() => {
+      setCurrentTestimonialIndex((prev) => (prev === testimonials.length - 1 ? 0 : prev + 1))
+      setIsAnimating(false)
+      setSlideDirection(null)
+    }, 300)
+  }
+
+  const handleIndicatorClick = (index: number) => {
+    if (isAnimating || index === currentTestimonialIndex) return
+    setIsAnimating(true)
+    setSlideDirection(index > currentTestimonialIndex ? "left" : "right")
+    setTimeout(() => {
+      setCurrentTestimonialIndex(index)
+      setIsAnimating(false)
+      setSlideDirection(null)
+    }, 300)
+  }
+
+  const currentTestimonial = testimonials[currentTestimonialIndex]
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -240,70 +342,131 @@ export default function HomePage() {
           </h2>
 
           <div className="flex items-center justify-center">
-            <button className="p-4 bg-[#FFA500] text-white rounded-full hover:bg-[#FF8C00] w-16 h-16 flex items-center justify-center mr-8 shadow-lg">
+            <button
+              onClick={handlePrevTestimonial}
+              disabled={isAnimating}
+              className="p-4 bg-[#FFA500] text-white rounded-full hover:bg-[#FF8C00] w-16 h-16 flex items-center justify-center mr-8 shadow-lg transition-all duration-200 disabled:opacity-50"
+            >
               <ChevronLeft size={32} />
             </button>
 
-            <div className="flex-1 max-w-6xl">
-              <div className="flex flex-col md:flex-row items-center gap-8">
-                {/* Ferdinand's Photo - Left Side */}
-                <div className="flex-shrink-0">
-                  <div className="relative w-64 h-64 rounded-2xl overflow-hidden shadow-xl">
-                    <Image src="/images/ferdinand-wangsa.png" alt="Ferdinand Wangsa" fill className="object-cover" />
+            <div className="flex-1 max-w-6xl overflow-hidden">
+              <div
+                className={`transition-all duration-500 ease-in-out ${
+                  isAnimating
+                    ? slideDirection === "left"
+                      ? "-translate-x-full opacity-0"
+                      : "translate-x-full opacity-0"
+                    : "translate-x-0 opacity-100"
+                }`}
+              >
+                <div className="flex flex-col md:flex-row items-center gap-8">
+                  {/* Person's Photo - Left Side */}
+                  <div className="flex-shrink-0">
+                    <div className="relative w-64 h-64 rounded-2xl overflow-hidden shadow-xl">
+                      <Image
+                        src={currentTestimonial.photo || "/placeholder.svg"}
+                        alt={currentTestimonial.name}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                    <h3 className="text-3xl font-bold text-[#7a8c4f] mt-4 text-center">{currentTestimonial.name}</h3>
                   </div>
-                  <h3 className="text-3xl font-bold text-[#7a8c4f] mt-4 text-center">Ferdinand Wangsa</h3>
-                </div>
 
-                {/* Food Reviews - Right Side */}
-                <div className="flex-1">
-                  <div className="grid grid-cols-2 gap-6">
-                    {/* Nasi Goreng */}
-                    <div className="text-center">
-                      <div className="relative w-32 h-32 mx-auto mb-4 rounded-2xl overflow-hidden shadow-lg">
-                        <Image src="/images/nasi-goreng.png" alt="Nasi Goreng" fill className="object-cover" />
+                  {/* Food Reviews - Right Side */}
+                  <div className="flex-1">
+                    {currentTestimonial.id === 2 ? (
+                      // Thomas Wongso - Triangle layout (3 items)
+                      <div className="flex flex-col items-center gap-6">
+                        {/* Top row - 2 items */}
+                        <div className="flex gap-8 justify-center">
+                          <div className="text-center">
+                            <div className="relative w-32 h-32 mx-auto mb-4 rounded-2xl overflow-hidden shadow-lg">
+                              <Image
+                                src={currentTestimonial.reviews[0].image || "/placeholder.svg"}
+                                alt={currentTestimonial.reviews[0].alt}
+                                fill
+                                className="object-cover"
+                              />
+                            </div>
+                            <p className="text-sm text-[#4a5c2f] leading-relaxed max-w-40">
+                              {currentTestimonial.reviews[0].text}
+                            </p>
+                          </div>
+                          <div className="text-center">
+                            <div className="relative w-32 h-32 mx-auto mb-4 rounded-2xl overflow-hidden shadow-lg">
+                              <Image
+                                src={currentTestimonial.reviews[1].image || "/placeholder.svg"}
+                                alt={currentTestimonial.reviews[1].alt}
+                                fill
+                                className="object-cover"
+                              />
+                            </div>
+                            <p className="text-sm text-[#4a5c2f] leading-relaxed max-w-40">
+                              {currentTestimonial.reviews[1].text}
+                            </p>
+                          </div>
+                        </div>
+                        {/* Bottom row - 1 item centered */}
+                        <div className="text-center">
+                          <div className="relative w-32 h-32 mx-auto mb-4 rounded-2xl overflow-hidden shadow-lg">
+                            <Image
+                              src={currentTestimonial.reviews[2].image || "/placeholder.svg"}
+                              alt={currentTestimonial.reviews[2].alt}
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+                          <p className="text-sm text-[#4a5c2f] leading-relaxed max-w-40">
+                            {currentTestimonial.reviews[2].text}
+                          </p>
+                        </div>
                       </div>
-                      <p className="text-sm text-[#4a5c2f] leading-relaxed">
-                        Nasi gorengnya super smoky saya jadi tidak bisa stop makan 😍😍
-                      </p>
-                    </div>
-
-                    {/* Capcay */}
-                    <div className="text-center">
-                      <div className="relative w-32 h-32 mx-auto mb-4 rounded-2xl overflow-hidden shadow-lg">
-                        <Image src="/images/capcay.png" alt="Capcay" fill className="object-cover" />
+                    ) : (
+                      // Ferdinand Wangsa - Grid layout (4 items)
+                      <div className="grid grid-cols-2 gap-6">
+                        {currentTestimonial.reviews.map((review, index) => (
+                          <div key={index} className="text-center">
+                            <div className="relative w-32 h-32 mx-auto mb-4 rounded-2xl overflow-hidden shadow-lg">
+                              <Image
+                                src={review.image || "/placeholder.svg"}
+                                alt={review.alt}
+                                fill
+                                className="object-cover"
+                              />
+                            </div>
+                            <p className="text-sm text-[#4a5c2f] leading-relaxed">{review.text}</p>
+                          </div>
+                        ))}
                       </div>
-                      <p className="text-sm text-[#4a5c2f] leading-relaxed">
-                        Capcaynya lezat dan bergizi mengingatkan saya dengan masakan ibu 🥰🥰
-                      </p>
-                    </div>
-
-                    {/* Tingkat Kematangan Ayam */}
-                    <div className="text-center">
-                      <div className="relative w-32 h-32 mx-auto mb-4 rounded-2xl overflow-hidden shadow-lg">
-                        <Image src="/images/sayur-hijau.png" alt="Sayur Hijau" fill className="object-cover" />
-                      </div>
-                      <p className="text-sm text-[#4a5c2f] leading-relaxed">
-                        Tingkat kematangan ayam sempurna dan cabe ijonya sangat lezat 😋❤️
-                      </p>
-                    </div>
-
-                    {/* Tempe */}
-                    <div className="text-center">
-                      <div className="relative w-32 h-32 mx-auto mb-4 rounded-2xl overflow-hidden shadow-lg">
-                        <Image src="/images/tempe-goreng.png" alt="Tempe Goreng" fill className="object-cover" />
-                      </div>
-                      <p className="text-sm text-[#4a5c2f] leading-relaxed">
-                        Benar-benar nikmat!! tempenya seperti dimasak oleh Gordon Ramsey 🤩🤩
-                      </p>
-                    </div>
+                    )}
                   </div>
                 </div>
               </div>
             </div>
 
-            <button className="p-4 bg-[#FFA500] text-white rounded-full hover:bg-[#FF8C00] w-16 h-16 flex items-center justify-center ml-8 shadow-lg">
+            <button
+              onClick={handleNextTestimonial}
+              disabled={isAnimating}
+              className="p-4 bg-[#FFA500] text-white rounded-full hover:bg-[#FF8C00] w-16 h-16 flex items-center justify-center ml-8 shadow-lg transition-all duration-200 disabled:opacity-50"
+            >
               <ChevronRight size={32} />
             </button>
+          </div>
+
+          {/* Testimonial Indicators */}
+          <div className="flex justify-center mt-8 space-x-2">
+            {testimonials.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => handleIndicatorClick(index)}
+                disabled={isAnimating}
+                className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                  index === currentTestimonialIndex ? "bg-[#FFA500] scale-125" : "bg-gray-300 hover:bg-gray-400"
+                }`}
+              />
+            ))}
           </div>
         </div>
       </section>

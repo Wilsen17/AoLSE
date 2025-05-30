@@ -188,8 +188,9 @@ export default function HistoryPage() {
     }
     setUser(JSON.parse(userData))
 
-    // Get orders from localStorage - don't clear them
-    const storedOrders = localStorage.getItem("orders")
+    // Get user-specific orders from localStorage
+    const userOrdersKey = `orders_${JSON.parse(userData).email}`
+    const storedOrders = localStorage.getItem(userOrdersKey)
     if (storedOrders) {
       try {
         const parsedOrders = JSON.parse(storedOrders)

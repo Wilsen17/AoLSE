@@ -175,10 +175,11 @@ export default function CheckoutPage() {
       status: "confirmed",
     }
 
-    // Save to localStorage - don't overwrite existing orders
-    const existingOrders = JSON.parse(localStorage.getItem("orders") || "[]")
+    // Save to localStorage per user - don't overwrite existing orders
+    const userOrdersKey = `orders_${user.email}`
+    const existingOrders = JSON.parse(localStorage.getItem(userOrdersKey) || "[]")
     existingOrders.unshift(order) // Add to beginning of array
-    localStorage.setItem("orders", JSON.stringify(existingOrders))
+    localStorage.setItem(userOrdersKey, JSON.stringify(existingOrders))
 
     // Set as active order
     localStorage.setItem(
@@ -242,7 +243,9 @@ export default function CheckoutPage() {
           {/* Delivery Address Section */}
           <div className="mb-8">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-bold text-[#4a5c2f]">Alamat Pengiriman</h2>
+              <h2 className="text-2xl font-bold text-[#4a5c2f] bg-[#FFF9E2] inline-block px-6 py-3 rounded-xl shadow-md">
+                Alamat Pengiriman
+              </h2>
               <span className="text-lg text-[#4a5c2f] font-medium">{getCurrentDate()}</span>
             </div>
 
@@ -256,7 +259,9 @@ export default function CheckoutPage() {
 
           {/* Order Items Section */}
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-[#4a5c2f] mb-6">Pesanan</h2>
+            <h2 className="text-2xl font-bold text-[#4a5c2f] bg-[#FFF9E2] inline-block px-6 py-3 rounded-xl shadow-md mb-6">
+              Pesanan
+            </h2>
 
             {cartItems.length === 0 ? (
               <div className="bg-[#DDB04E] rounded-2xl p-8 text-center">
@@ -313,7 +318,9 @@ export default function CheckoutPage() {
             <>
               {/* Voucher Section */}
               <div className="mb-8">
-                <h2 className="text-2xl font-bold text-[#4a5c2f] mb-4">Voucher</h2>
+                <h2 className="text-2xl font-bold text-[#4a5c2f] bg-[#FFF9E2] inline-block px-6 py-3 rounded-xl shadow-md mb-4">
+                  Voucher
+                </h2>
 
                 {!selectedVoucher ? (
                   <div className="relative">
@@ -358,37 +365,39 @@ export default function CheckoutPage() {
                 )}
               </div>
 
-              {/* Price Summary */}
-              <div className="mb-8 space-y-4">
-                <div className="flex justify-between items-center px-4">
-                  <span className="text-[#4a5c2f] font-medium text-lg">Subtotal</span>
-                  <span className="text-[#4a5c2f] font-bold text-lg">Rp. {getSubtotal().toLocaleString()}</span>
-                </div>
-
-                {selectedVoucher && (
-                  <div className="flex justify-between items-center px-4">
-                    <span className="text-[#4a5c2f] font-medium text-lg">
-                      Potongan Voucher ({selectedVoucher.name})
-                    </span>
-                    <span className="text-red-600 font-bold text-lg">
-                      - Rp. {selectedVoucher.discount.toLocaleString()}
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              {/* Total Section */}
+              {/* Price Summary and Total - Combined in one background */}
               <div className="bg-[#FFF9E2] rounded-xl p-6 mb-8">
-                <div className="flex justify-between items-center mb-4">
-                  <span className="text-[#4a5c2f] font-bold text-2xl">Total</span>
-                  <span className="text-[#4a5c2f] font-bold text-2xl">Rp. {getTotalPrice().toLocaleString()}</span>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[#4a5c2f] font-medium text-lg">Subtotal</span>
+                    <span className="text-[#4a5c2f] font-bold text-lg">Rp. {getSubtotal().toLocaleString()}</span>
+                  </div>
+
+                  {selectedVoucher && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-[#4a5c2f] font-medium text-lg">
+                        Potongan Voucher ({selectedVoucher.name})
+                      </span>
+                      <span className="text-red-600 font-bold text-lg">
+                        - Rp. {selectedVoucher.discount.toLocaleString()}
+                      </span>
+                    </div>
+                  )}
+
+                  <hr className="border-[#4a5c2f] border-t-2 my-4" />
+
+                  <div className="flex justify-between items-center mb-4">
+                    <span className="text-[#4a5c2f] font-bold text-2xl">Total</span>
+                    <span className="text-[#4a5c2f] font-bold text-2xl">Rp. {getTotalPrice().toLocaleString()}</span>
+                  </div>
+
+                  <Button
+                    onClick={handleOrderNow}
+                    className="w-full bg-[#b3a278] hover:bg-[#a39068] text-[#4a5c2f] font-bold py-4 text-xl rounded-lg"
+                  >
+                    Order Now
+                  </Button>
                 </div>
-                <Button
-                  onClick={handleOrderNow}
-                  className="w-full bg-[#b3a278] hover:bg-[#a39068] text-[#4a5c2f] font-bold py-4 text-xl rounded-lg"
-                >
-                  Order Now
-                </Button>
               </div>
             </>
           )}

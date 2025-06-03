@@ -1,44 +1,101 @@
 "use client"
+
+import { useEffect, useState } from "react"
 import Image from "next/image"
 
 interface OrderStatusProps {
-  currentStatus: "placed" | "cooking" | "delivery" | "completed"
-  orderDate?: string
   orderId: string
+  currentStatus: string
 }
 
-export default function OrderStatus({ currentStatus, orderDate, orderId }: OrderStatusProps) {
+export default function OrderStatus({ orderId, currentStatus }: OrderStatusProps) {
+  const [status, setStatus] = useState(currentStatus)
+
+  useEffect(() => {
+    // Check for status updates from admin
+    const checkStatusUpdate = () => {
+      const user = localStorage.getItem("user")
+      if (user) {
+        const userData = JSON.parse(user)
+        const userOrdersKey = `orders_${userData.email}`
+        const orders = JSON.parse(localStorage.getItem(userOrdersKey) || "[]")
+        const currentOrder = orders.find((order: any) => order.id === orderId)
+
+        if (currentOrder && currentOrder.status !== status) {
+          setStatus(currentOrder.status)
+        }
+      }
+    }
+
+    // Check for updates every 5 seconds
+    const interval = setInterval(checkStatusUpdate, 5000)
+
+    return () => clearInterval(interval)
+  }, [orderId, status])
+
+  const getStatusStep = (status: string) => {
+    switch (status) {
+      case "pending":
+        return 0
+      case "order_placed":
+        return 1
+      case "cooking":
+        return 2
+      case "delivery":
+        return 3
+      case "cancelled":
+        return 0
+      default:
+        return 0
+    }
+  }
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case "pending":
+        return "Menunggu Konfirmasi"
+      case "order_placed":
+        return "Pesanan Diterima"
+      case "cooking":
+        return "Sedang Dimasak"
+      case "delivery":
+        return "Sedang Dikirim"
+      case "cancelled":
+        return "Pesanan Dibatalkan"
+      default:
+        return "Menunggu Konfirmasi"
+    }
+  }
+
+  const currentStep = getStatusStep(status)
+
+  if (status === "cancelled") {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-white text-2xl">✕</span>
+          </div>
+          <h3 className="text-lg font-semibold text-red-800 mb-2">Pesanan Dibatalkan</h3>
+          <p className="text-red-600">Pesanan Anda telah dibatalkan oleh admin.</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="mt-8">
-      <h3 className="text-lg font-semibold text-[#4a3f2d] mb-6">On-going Order Status — Order #{orderId}</h3>
+    <div className="bg-[#DDB04E] rounded-lg shadow-lg p-6">
+      <div className="text-center mb-4">
+        <h3 className="text-xl font-bold text-[#4a5c2f] mb-2">Status Pesanan</h3>
+        <p className="text-[#4a5c2f] font-medium">Order ID: #{orderId}</p>
+      </div>
 
-      <div className="flex items-start justify-between relative">
-        {/* Progress Line */}
-        <div className="absolute left-0 right-0 h-1 bg-[#4a3f2d]/30 top-6 z-0"></div>
-
-        {/* Active Progress Line */}
-        <div
-          className={`absolute left-0 h-1 bg-[#7a8c4f] top-6 z-0 transition-all duration-500 ${
-            currentStatus === "placed"
-              ? "w-0"
-              : currentStatus === "cooking"
-                ? "w-1/2"
-                : currentStatus === "delivery"
-                  ? "w-full"
-                  : "w-full"
-          }`}
-        ></div>
-
-        {/* Order Placed */}
-        <div className="flex flex-col items-center relative z-10">
+      <div className="flex items-center justify-between mb-8">
+        {/* Step 1: Order Placed */}
+        <div className="flex flex-col items-center flex-1">
           <div
-            className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 ${
-              currentStatus === "placed" ||
-              currentStatus === "cooking" ||
-              currentStatus === "delivery" ||
-              currentStatus === "completed"
-                ? "bg-[#7a8c4f]"
-                : "bg-[#AC9362] border-2 border-[#4a3f2d]"
+            className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 ${
+              currentStep >= 1 ? "bg-[#7a8c4f] text-white" : "bg-gray-200 text-gray-400"
             }`}
           >
             <Image
@@ -46,95 +103,69 @@ export default function OrderStatus({ currentStatus, orderDate, orderId }: Order
               alt="Order Placed"
               width={24}
               height={24}
-              className="filter brightness-0 invert"
+              className={currentStep >= 1 ? "opacity-100" : "opacity-50"}
             />
           </div>
-          <span className="text-sm font-medium text-[#4a3f2d] text-center leading-tight">
-            Order
-            <br />
-            Placed
-          </span>
+          <p className={`text-sm text-center ${currentStep >= 1 ? "text-[#4a5c2f] font-semibold" : "text-gray-500"}`}>
+            Pesanan Diterima
+          </p>
         </div>
 
-        {/* Cooking */}
-        <div className="flex flex-col items-center relative z-10">
+        {/* Connector Line 1 */}
+        <div className={`flex-1 h-1 mx-2 ${currentStep >= 2 ? "bg-[#7a8c4f]" : "bg-gray-300"}`}></div>
+
+        {/* Step 2: Cooking */}
+        <div className="flex flex-col items-center flex-1">
           <div
-            className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 ${
-              currentStatus === "cooking"
-                ? "bg-[#FFD700]"
-                : currentStatus === "delivery" || currentStatus === "completed"
-                  ? "bg-[#7a8c4f]"
-                  : "bg-[#AC9362] border-2 border-[#4a3f2d]"
+            className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 ${
+              currentStep >= 2 ? "bg-[#7a8c4f] text-white" : "bg-gray-200 text-gray-400"
             }`}
           >
-            {currentStatus === "cooking" ? (
-              <Image
-                src="/images/cooking-icon.png"
-                alt="Cooking"
-                width={24}
-                height={24}
-                className="filter brightness-0"
-              />
-            ) : currentStatus === "delivery" || currentStatus === "completed" ? (
-              <Image
-                src="/images/check-icon.png"
-                alt="Cooking Complete"
-                width={24}
-                height={24}
-                className="filter brightness-0 invert"
-              />
-            ) : (
-              <Image
-                src="/images/cooking-icon.png"
-                alt="Cooking"
-                width={24}
-                height={24}
-                className="filter brightness-0 opacity-50"
-              />
-            )}
+            <Image
+              src="/images/cooking-icon.png"
+              alt="Cooking"
+              width={24}
+              height={24}
+              className={currentStep >= 2 ? "opacity-100" : "opacity-50"}
+            />
           </div>
-          <span className="text-sm font-medium text-[#4a3f2d] text-center">Cooking</span>
+          <p className={`text-sm text-center ${currentStep >= 2 ? "text-[#4a5c2f] font-semibold" : "text-gray-500"}`}>
+            Sedang Dimasak
+          </p>
         </div>
 
-        {/* Delivery */}
-        <div className="flex flex-col items-center relative z-10">
+        {/* Connector Line 2 */}
+        <div className={`flex-1 h-1 mx-2 ${currentStep >= 3 ? "bg-[#7a8c4f]" : "bg-gray-300"}`}></div>
+
+        {/* Step 3: Delivery */}
+        <div className="flex flex-col items-center flex-1">
           <div
-            className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 ${
-              currentStatus === "delivery"
-                ? "bg-[#FFD700]"
-                : currentStatus === "completed"
-                  ? "bg-[#7a8c4f]"
-                  : "bg-[#AC9362] border-2 border-[#4a3f2d]"
+            className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 ${
+              currentStep >= 3 ? "bg-[#7a8c4f] text-white" : "bg-gray-200 text-gray-400"
             }`}
           >
-            {currentStatus === "delivery" ? (
-              <Image
-                src="/images/delivery-icon.png"
-                alt="Delivery"
-                width={24}
-                height={24}
-                className="filter brightness-0"
-              />
-            ) : currentStatus === "completed" ? (
-              <Image
-                src="/images/check-icon.png"
-                alt="Delivery Complete"
-                width={24}
-                height={24}
-                className="filter brightness-0 invert"
-              />
-            ) : (
-              <Image
-                src="/images/delivery-icon.png"
-                alt="Delivery"
-                width={24}
-                height={24}
-                className="filter brightness-0 opacity-50"
-              />
-            )}
+            <Image
+              src="/images/delivery-icon.png"
+              alt="Delivery"
+              width={24}
+              height={24}
+              className={currentStep >= 3 ? "opacity-100" : "opacity-50"}
+            />
           </div>
-          <span className="text-sm font-medium text-[#4a3f2d] text-center">Delivery</span>
+          <p className={`text-sm text-center ${currentStep >= 3 ? "text-[#4a5c2f] font-semibold" : "text-gray-500"}`}>
+            Sedang Dikirim
+          </p>
         </div>
+      </div>
+
+      <div className="text-center">
+        <p className="text-lg font-semibold text-[#4a5c2f]">{getStatusText(status)}</p>
+        <p className="text-sm text-[#4a5c2f] mt-1">
+          {status === "pending" && "Pesanan Anda menunggu konfirmasi admin"}
+          {status === "order_placed" && "Pesanan Anda sedang diproses"}
+          {status === "cooking" && "Chef sedang menyiapkan makanan Anda"}
+          {status === "delivery" && "Pesanan Anda sedang dalam perjalanan"}
+        </p>
       </div>
     </div>
   )

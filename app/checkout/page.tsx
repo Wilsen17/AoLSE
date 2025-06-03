@@ -175,7 +175,7 @@ export default function CheckoutPage() {
           }
         : null,
       total: getTotalPrice(),
-      status: "confirmed",
+      status: "pending", // Changed from "confirmed" to "pending"
     }
 
     // Save to localStorage per user - don't overwrite existing orders
@@ -189,7 +189,7 @@ export default function CheckoutPage() {
       "activeOrder",
       JSON.stringify({
         id: orderId,
-        status: "cooking",
+        status: "pending", // Changed from "cooking" to "pending"
       }),
     )
 

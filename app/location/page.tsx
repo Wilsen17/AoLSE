@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import Image from "next/image"
 import Navbar from "@/components/navbar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -121,11 +120,10 @@ export default function LocationPage() {
                     {/* Building Image */}
                     <div className="flex-1 mb-6">
                       <div className="relative w-full h-80 rounded-2xl overflow-hidden shadow-lg">
-                        <Image
-                          src={location.image || "/placeholder.svg"}
+                        <img
+                          src={location.image || "/placeholder.svg?height=300&width=400"}
                           alt={`Your Daily Meal Location ${index + 1}`}
-                          fill
-                          className="object-cover"
+                          className="w-full h-full object-cover"
                         />
                       </div>
                     </div>
@@ -159,7 +157,7 @@ export default function LocationPage() {
         <div className="container mx-auto max-w-6xl">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <Image src="/images/logo.png" alt="Your Daily Meal" width={100} height={50} className="h-auto" />
+              <img src="/images/logo.png" alt="Your Daily Meal" width={100} height={50} className="h-auto" />
               <div className="text-[#4a5c2f]">
                 <h3 className="text-xl font-bold">FAQ</h3>
                 <p className="text-sm">Hubungi kami untuk pertanyaan</p>

@@ -2,40 +2,20 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import Navbar from "@/components/navbar"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 
-export default function LoginPage() {
+export default function AdminLoginPage() {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const signupSuccess = searchParams.get("signup") === "success"
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
-  const [redirectPath, setRedirectPath] = useState<string | null>(null)
-  const [showSignupSuccess, setShowSignupSuccess] = useState(signupSuccess)
-
-  useEffect(() => {
-    // Check if there's a redirect path stored
-    const storedRedirect = localStorage.getItem("redirectAfterLogin")
-    if (storedRedirect) {
-      setRedirectPath(storedRedirect)
-    }
-
-    // Hide signup success message after 5 seconds
-    if (signupSuccess) {
-      const timer = setTimeout(() => {
-        setShowSignupSuccess(false)
-      }, 5000)
-      return () => clearTimeout(timer)
-    }
-  }, [signupSuccess])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -43,50 +23,7 @@ export default function LoginPage() {
     setError("")
 
     try {
-      // Default admin credentials for direct login without API
-      if (email === "admin@yourdailymeal.com" && password === "admin123") {
-        const adminData = {
-          id: "admin-1",
-          email: "admin@yourdailymeal.com",
-          name: "Admin YDM",
-          role: "admin",
-        }
-
-        // Store admin data in localStorage
-        localStorage.setItem("admin", JSON.stringify(adminData))
-        alert("Login admin berhasil! Selamat datang, Admin.")
-        router.push("/admin/dashboard")
-        return
-      }
-
-      // Try user login
-      // For demo purposes, let's create a default user if none exists
-      if (email === "user@example.com" && password === "password123") {
-        const userData = {
-          id: "user-1",
-          username: "Demo User",
-          email: "user@example.com",
-          phone: "081234567890",
-          address: "Jl. Demo User No. 123",
-        }
-
-        // Store user data in localStorage
-        localStorage.setItem("user", JSON.stringify(userData))
-        alert("Login berhasil! Selamat datang.")
-
-        // Check if there's a redirect path
-        if (redirectPath) {
-          localStorage.removeItem("redirectAfterLogin")
-          router.push(redirectPath)
-        } else {
-          router.push("/")
-        }
-
-        return
-      }
-
-      // If not using hardcoded credentials, try API
-      const userResponse = await fetch("/api/auth/login", {
+      const response = await fetch("/api/auth/admin-login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -94,27 +31,24 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password }),
       })
 
-      const userData = await userResponse.json()
+      const data = await response.json()
 
-      if (userResponse.ok) {
-        // Store user data in localStorage
-        localStorage.setItem("user", JSON.stringify(userData.user))
-        alert("Login berhasil! Selamat datang.")
+      if (response.ok) {
+        // Store admin data in localStorage
+        localStorage.setItem("admin", JSON.stringify(data.admin))
 
-        // Check if there's a redirect path
-        if (redirectPath) {
-          localStorage.removeItem("redirectAfterLogin")
-          router.push(redirectPath)
-        } else {
-          router.push("/")
-        }
+        // Show success message briefly
+        alert("Login admin berhasil! Selamat datang, Admin.")
+
+        // Redirect to admin dashboard
+        router.push("/admin/dashboard")
 
         // Force page refresh to update navbar
         setTimeout(() => {
           window.location.reload()
         }, 100)
       } else {
-        setError(userData.error || "Email atau password salah")
+        setError(data.error || "Login admin gagal")
       }
     } catch (error) {
       console.error("Error:", error)
@@ -134,7 +68,7 @@ export default function LoginPage() {
           <Image src="/images/food-image.png" alt="Delicious meal" fill className="object-cover" priority />
         </div>
 
-        {/* Right side - Login Form */}
+        {/* Right side - Admin Login Form */}
         <div className="w-full md:w-1/2 bg-[#7a8c4f] flex items-center justify-center p-6">
           <div className="w-full max-w-md">
             <div className="bg-[#f8f3e2] rounded-3xl p-8 shadow-lg">
@@ -142,21 +76,17 @@ export default function LoginPage() {
                 <Image src="/images/logo.png" alt="Your Daily Meal" width={200} height={100} className="h-auto" />
               </div>
 
-              {showSignupSuccess && (
-                <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
-                  <div className="font-bold">Signup Berhasil!</div>
-                  <div className="text-sm">
-                    Akun Anda telah berhasil dibuat. Silakan login dengan email dan password Anda.
-                  </div>
-                </div>
-              )}
+              <div className="text-center mb-6">
+                <h2 className="text-2xl font-bold text-[#4a5c2f]">Admin Login</h2>
+                <p className="text-[#4a5c2f] mt-2">Masuk sebagai administrator</p>
+              </div>
 
               {error && <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">{error}</div>}
 
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
                   <label htmlFor="email" className="block text-xl text-[#4a5c2f] font-medium">
-                    Email
+                    Email Admin
                   </label>
                   <Input
                     id="email"
@@ -167,7 +97,7 @@ export default function LoginPage() {
                       if (error) setError("")
                     }}
                     className="w-full p-3 border border-gray-300 rounded-lg"
-                    placeholder="Masukkan email"
+                    placeholder="Masukkan email admin"
                     required
                     disabled={isLoading}
                   />
@@ -175,7 +105,7 @@ export default function LoginPage() {
 
                 <div className="space-y-2">
                   <label htmlFor="password" className="block text-xl text-[#4a5c2f] font-medium">
-                    Password
+                    Password Admin
                   </label>
                   <Input
                     id="password"
@@ -186,14 +116,14 @@ export default function LoginPage() {
                       if (error) setError("")
                     }}
                     className="w-full p-3 border border-gray-300 rounded-lg"
-                    placeholder="Masukkan password"
+                    placeholder="Masukkan password admin"
                     required
                     disabled={isLoading}
                   />
                 </div>
 
                 <div className="text-right">
-                  <Link href="/forgot-password" className="text-[#4a5c2f] hover:underline">
+                  <Link href="/admin/forgot-password" className="text-[#4a5c2f] hover:underline">
                     Lupa password?
                   </Link>
                 </div>
@@ -203,17 +133,14 @@ export default function LoginPage() {
                   className="w-full py-3 bg-[#b3a278] hover:bg-[#a39068] text-[#4a5c2f] text-lg font-medium rounded-lg"
                   disabled={isLoading}
                 >
-                  {isLoading ? "Memproses..." : "Log In"}
+                  {isLoading ? "Memproses..." : "Login Admin"}
                 </Button>
               </form>
 
               <div className="mt-6 text-center">
-                <p className="text-[#4a5c2f]">
-                  Belum punya akun?{" "}
-                  <Link href="/signup" className="text-[#4a5c2f] font-bold hover:underline">
-                    Daftar
-                  </Link>
-                </p>
+                <Link href="/login" className="text-[#4a5c2f] hover:underline">
+                  ← Kembali ke Login User
+                </Link>
               </div>
             </div>
           </div>

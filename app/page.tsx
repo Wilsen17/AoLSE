@@ -204,9 +204,7 @@ export default function HomePage() {
       <section className="bg-[#7a8c4f] py-16 px-6">
         <div className="container mx-auto max-w-6xl">
           {/* Nilai Utama Title */}
-          <h2 className="text-4xl font-bold text-[#FFA500] text-center mb-8" style={{ fontFamily: "serif" }}>
-            Nilai Utama
-          </h2>
+          <h2 className="text-4xl font-bold text-[#FFA500] text-center mb-8">Nilai Utama</h2>
 
           {/* Nilai Utama Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-16">
@@ -337,9 +335,7 @@ export default function HomePage() {
       {/* Testimonial Section - SOLID BEIGE COLOR */}
       <section className="bg-[#FFF9E2] py-16 px-6">
         <div className="container mx-auto max-w-7xl">
-          <h2 className="text-5xl font-bold text-[#8B4513] text-center mb-16" style={{ fontFamily: "serif" }}>
-            Testimonial
-          </h2>
+          <h2 className="text-5xl font-bold text-[#8B4513] text-center mb-16">Testimonial</h2>
 
           <div className="flex items-center justify-center">
             <button
@@ -509,13 +505,25 @@ export default function HomePage() {
           {/* Text Section */}
           <div className="flex-1 flex flex-col items-center md:items-start justify-center text-center md:text-left text-[#4a3f2d]">
             <h2 className="text-4xl font-bold mb-4">Siap praktis bareng kita ?</h2>
-            <p className="text-xl mb-6">Klik order sekarang juga</p>
-            <Button
-              onClick={() => (user ? router.push("/menu") : router.push("/login"))}
-              className="bg-[#7a8c4f] hover:bg-[#6a7c3e] text-white font-semibold text-lg px-6 py-3 rounded-lg shadow-md"
-            >
-              Order Here
-            </Button>
+            <p className="text-xl mb-6">Klik order sekarang atau tanya AI assistant kami</p>
+            <div className="flex flex-wrap gap-4">
+              <Button
+                onClick={() => (user ? router.push("/menu") : router.push("/login"))}
+                className="bg-[#7a8c4f] hover:bg-[#6a7c3e] text-white font-semibold text-lg px-6 py-3 rounded-lg shadow-md"
+              >
+                Order Here
+              </Button>
+              <Button
+                onClick={() => {
+                  // Find and click the chat button
+                  const chatButton = document.querySelector('[data-chat-button="true"]') as HTMLButtonElement
+                  if (chatButton) chatButton.click()
+                }}
+                className="bg-[#DDB04E] hover:bg-[#C9A03E] text-[#4a5c2f] font-semibold text-lg px-6 py-3 rounded-lg shadow-md"
+              >
+                Ask AI Assistant
+              </Button>
+            </div>
 
             {/* Order Status - Only shown for logged in users with active orders */}
             {user && (
@@ -561,7 +569,7 @@ export default function HomePage() {
               <Image src="/images/logo.png" alt="Your Daily Meal" width={100} height={50} className="h-auto" />
               <div className="text-[#4a5c2f]">
                 <h3 className="text-xl font-bold">FAQ</h3>
-                <p className="text-sm">Hubungi kami untuk pertanyaan</p>
+                <p className="text-sm">Tanya AI assistant atau hubungi kami</p>
               </div>
             </div>
             <div className="flex space-x-4">

@@ -387,24 +387,24 @@ export default function HistoryPage() {
                           <p className="text-[#FFD700] font-bold">{formatDate(order.date, order.id)}</p>
                         </td>
                         <td className="py-4 px-4">
-                          <div className="flex flex-col space-y-2">
+                          <div className="flex flex-col space-y-4">
                             {order.items.map((item, idx) => (
                               <div key={`${order.id}-${idx}`} className="flex items-center gap-3">
-                                <div className="relative w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
+                                <div className="relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
                                   <Image
-                                    src={item.image || "/placeholder.svg?height=48&width=48"}
+                                    src={item.image || "/placeholder.svg?height=64&width=64"}
                                     alt={item.name}
                                     fill
                                     className="object-cover"
                                     onError={(e) => {
                                       const target = e.target as HTMLImageElement
-                                      target.src = "/placeholder.svg?height=48&width=48"
+                                      target.src = "/placeholder.svg?height=64&width=64"
                                     }}
                                   />
                                 </div>
-                                <div className="bg-[#FFF9E2] rounded-lg p-2 flex-1">
-                                  <p className="text-[#4a5c2f] font-medium text-sm">{item.name}</p>
-                                  <p className="text-[#4a5c2f] text-xs">Rp. {item.price.toLocaleString()}</p>
+                                <div className="bg-[#FFF9E2] rounded-lg p-3 flex-1">
+                                  <p className="text-[#4a5c2f] font-bold text-lg">{item.name}</p>
+                                  <p className="text-[#4a5c2f] text-base">Rp. {item.price.toLocaleString()}</p>
                                 </div>
                               </div>
                             ))}
@@ -415,9 +415,9 @@ export default function HistoryPage() {
                             {order.items.map((item, idx) => (
                               <div
                                 key={`${order.id}-${idx}`}
-                                className="w-12 h-8 bg-[#FFC300] rounded-full flex items-center justify-center"
+                                className="w-14 h-10 bg-[#FFC300] rounded-full flex items-center justify-center"
                               >
-                                <span className="text-[#4a5c2f] font-bold text-sm">{item.quantity}x</span>
+                                <span className="text-[#4a5c2f] font-bold text-base">{item.quantity}x</span>
                               </div>
                             ))}
                           </div>

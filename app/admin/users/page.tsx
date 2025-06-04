@@ -2,10 +2,9 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Eye, Search } from "lucide-react"
+import { ArrowLeft, Eye, Search, RefreshCw } from "lucide-react"
 import { Input } from "@/components/ui/input"
 
 interface User {
@@ -14,7 +13,6 @@ interface User {
   email: string
   phone: string
   address: string
-  password: string
   created_at: string
   updated_at: string
 }
@@ -26,12 +24,14 @@ export default function AdminUsersPage() {
   const [filteredUsers, setFilteredUsers] = useState<User[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     // Check if admin is logged in
     const adminData = localStorage.getItem("admin")
     if (!adminData) {
-      router.push("/login")
+      router.push("/admin/login")
       return
     }
     setAdmin(JSON.parse(adminData))
@@ -53,67 +53,40 @@ export default function AdminUsersPage() {
     }
   }, [searchTerm, users])
 
-  const loadUsers = () => {
-    // Load users from localStorage
-    const allUsers: User[] = []
+  const loadUsers = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const response = await fetch("/api/admin/users")
+      const data = await response.json()
 
-    // Get all localStorage keys that contain user data
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i)
-      if (key && key.startsWith("user_")) {
-        try {
-          const userData = localStorage.getItem(key)
-          if (userData) {
-            const user = JSON.parse(userData)
-            if (user.email && user.username) {
-              allUsers.push({
-                id: user.id || key,
-                username: user.username,
-                email: user.email,
-                phone: user.phone || "",
-                address: user.address || "",
-                password: user.password || "N/A", // Show real password, not hash
-                created_at: user.created_at || new Date().toISOString(),
-                updated_at: user.updated_at || new Date().toISOString(),
-              })
-            }
-          }
-        } catch (e) {
-          console.error("Error parsing user data:", e)
-        }
+      if (response.ok) {
+        setUsers(data.users || [])
+        setFilteredUsers(data.users || [])
+      } else {
+        setError(data.error || "Gagal memuat data pengguna")
       }
+    } catch (error) {
+      console.error("Error loading users:", error)
+      setError("Terjadi kesalahan saat memuat data")
+    } finally {
+      setLoading(false)
     }
+  }
 
-    // Also check for users stored in 'users' key
-    const storedUsers = localStorage.getItem("users")
-    if (storedUsers) {
-      try {
-        const usersArray = JSON.parse(storedUsers)
-        usersArray.forEach((user: any) => {
-          if (user.email && user.username) {
-            allUsers.push({
-              id: user.id || Date.now().toString(),
-              username: user.username,
-              email: user.email,
-              phone: user.phone || "",
-              address: user.address || "",
-              password: user.password || "N/A",
-              created_at: user.created_at || new Date().toISOString(),
-              updated_at: user.updated_at || new Date().toISOString(),
-            })
-          }
-        })
-      } catch (e) {
-        console.error("Error parsing users array:", e)
-      }
-    }
-
-    setUsers(allUsers.sort((a: User, b: User) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()))
-    setFilteredUsers(allUsers)
+  const handleRefresh = () => {
+    loadUsers()
   }
 
   if (!admin) {
-    return <div>Loading...</div>
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#4a5c2f] mx-auto"></div>
+          <p className="mt-4 text-[#4a5c2f]">Loading...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -130,21 +103,25 @@ export default function AdminUsersPage() {
       <header className="w-full bg-[#b3a278] py-4 px-6">
         <div className="container mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <Link href="/admin/dashboard">
-              <Button className="bg-[#7a8c4f] text-white px-4 py-2 rounded-lg hover:bg-[#5a6c3f] flex items-center space-x-2">
-                <ArrowLeft size={16} />
-                <span>Back</span>
-              </Button>
-            </Link>
             <Image src="/images/logo.png" alt="Your Daily Meal" width={120} height={56} className="h-auto" />
           </div>
-          <span className="text-[#4a5c2f] font-medium">Admin: {admin.name}</span>
+          <span className="text-[#4a5c2f] font-medium">Admin: {admin?.name || "Admin"}</span>
         </div>
       </header>
 
       <main className="flex-1 p-6">
         <div className="container mx-auto">
           <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg p-8">
+            <div className="mb-6">
+              <Button
+                onClick={() => router.push("/admin/dashboard")}
+                className="bg-[#7a8c4f] text-white px-4 py-2 rounded-lg hover:bg-[#5a6c3f] flex items-center space-x-2"
+              >
+                <ArrowLeft size={16} />
+                <span>Back</span>
+              </Button>
+            </div>
+
             <div className="flex justify-between items-center mb-6">
               <h1 className="text-3xl font-bold text-[#4a5c2f]">Kelola Pengguna</h1>
               <div className="flex items-center space-x-2">
@@ -157,8 +134,26 @@ export default function AdminUsersPage() {
                     className="pl-10 w-64"
                   />
                 </div>
+                <Button
+                  onClick={handleRefresh}
+                  className="bg-[#7a8c4f] text-white hover:bg-[#5a6c3f] flex items-center space-x-2"
+                  disabled={loading}
+                >
+                  <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+                  <span>Refresh</span>
+                </Button>
               </div>
             </div>
+
+            {/* Error Message */}
+            {error && (
+              <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+                <p>{error}</p>
+                <Button onClick={handleRefresh} className="mt-2 bg-red-600 text-white hover:bg-red-700">
+                  Coba Lagi
+                </Button>
+              </div>
+            )}
 
             {/* Users Table */}
             <div className="overflow-x-auto">
@@ -177,18 +172,26 @@ export default function AdminUsersPage() {
                 <tbody>
                   {filteredUsers.map((user, index) => (
                     <tr key={user.id} className={index % 2 === 0 ? "bg-white" : "bg-[#f8f3e2]"}>
-                      <td className="px-4 py-3 text-sm">{user.id.toString().slice(-8)}</td>
+                      <td className="px-4 py-3 text-sm font-mono">{user.id.slice(-8)}</td>
                       <td className="px-4 py-3 font-medium text-[#4a5c2f]">{user.username}</td>
                       <td className="px-4 py-3 text-sm">{user.email}</td>
                       <td className="px-4 py-3 text-sm">{user.phone}</td>
                       <td className="px-4 py-3 text-sm max-w-xs truncate" title={user.address}>
                         {user.address}
                       </td>
-                      <td className="px-4 py-3 text-sm">{new Date(user.created_at).toLocaleDateString("id-ID")}</td>
+                      <td className="px-4 py-3 text-sm">
+                        {new Date(user.created_at).toLocaleDateString("id-ID", {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </td>
                       <td className="px-4 py-3">
                         <Button
                           onClick={() => setSelectedUser(user)}
-                          className="bg-[#b3a278] text-white px-3 py-1 rounded text-sm flex items-center space-x-1"
+                          className="bg-[#b3a278] text-white px-3 py-1 rounded text-sm flex items-center space-x-1 hover:bg-[#9a8a65]"
                         >
                           <Eye size={14} />
                           <span>Detail</span>
@@ -200,38 +203,52 @@ export default function AdminUsersPage() {
               </table>
             </div>
 
-            {filteredUsers.length === 0 && (
+            {/* Empty State */}
+            {filteredUsers.length === 0 && !loading && !error && (
               <div className="text-center py-12">
-                <p className="text-gray-500 text-lg">
+                <p className="text-gray-500 text-lg mb-4">
                   {searchTerm
                     ? `Tidak ada pengguna yang ditemukan untuk "${searchTerm}"`
                     : "Belum ada pengguna terdaftar"}
                 </p>
+                <Button onClick={handleRefresh} className="bg-[#7a8c4f] text-white hover:bg-[#5a6c3f]">
+                  Refresh Data
+                </Button>
+              </div>
+            )}
+
+            {/* Loading State */}
+            {loading && (
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#4a5c2f] mx-auto"></div>
+                <p className="mt-4 text-gray-500">Memuat data pengguna...</p>
               </div>
             )}
 
             {/* Summary */}
-            <div className="mt-6 bg-[#f8f3e2] rounded-lg p-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-                <div>
-                  <h3 className="text-2xl font-bold text-[#4a5c2f]">{users.length}</h3>
-                  <p className="text-[#7a8c4f]">Total Pengguna</p>
-                </div>
-                <div>
-                  <h3 className="text-2xl font-bold text-[#4a5c2f]">{filteredUsers.length}</h3>
-                  <p className="text-[#7a8c4f]">Hasil Pencarian</p>
-                </div>
-                <div>
-                  <h3 className="text-2xl font-bold text-[#4a5c2f]">
-                    {
-                      users.filter((user) => new Date(user.created_at).toDateString() === new Date().toDateString())
-                        .length
-                    }
-                  </h3>
-                  <p className="text-[#7a8c4f]">Daftar Hari Ini</p>
+            {!loading && !error && (
+              <div className="mt-6 bg-[#f8f3e2] rounded-lg p-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                  <div>
+                    <h3 className="text-2xl font-bold text-[#4a5c2f]">{users.length}</h3>
+                    <p className="text-[#7a8c4f]">Total Pengguna</p>
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-[#4a5c2f]">{filteredUsers.length}</h3>
+                    <p className="text-[#7a8c4f]">Hasil Pencarian</p>
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-[#4a5c2f]">
+                      {
+                        users.filter((user) => new Date(user.created_at).toDateString() === new Date().toDateString())
+                          .length
+                      }
+                    </h3>
+                    <p className="text-[#7a8c4f]">Daftar Hari Ini</p>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </main>
@@ -257,7 +274,7 @@ export default function AdminUsersPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <p className="text-sm text-gray-600">ID Pengguna</p>
-                      <p className="font-medium">{selectedUser.id}</p>
+                      <p className="font-medium font-mono">{selectedUser.id}</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">Username</p>
@@ -294,20 +311,19 @@ export default function AdminUsersPage() {
                         })}
                       </p>
                     </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Terakhir Diupdate</p>
+                      <p className="font-medium">
+                        {new Date(selectedUser.updated_at).toLocaleDateString("id-ID", {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </p>
+                    </div>
                   </div>
-                </div>
-
-                <div className="bg-[#f8f3e2] p-4 rounded-lg">
-                  <h3 className="font-semibold text-[#4a5c2f] mb-3">Terakhir Diupdate</h3>
-                  <p className="font-medium">
-                    {new Date(selectedUser.updated_at).toLocaleDateString("id-ID", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </p>
                 </div>
               </div>
             </div>

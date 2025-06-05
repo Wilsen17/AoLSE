@@ -109,12 +109,6 @@ export default function AdminSettingsPage() {
       <header className="w-full bg-[#b3a278] py-4 px-6">
         <div className="container mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <Link href="/admin/dashboard">
-              <Button className="bg-[#7a8c4f] text-white px-4 py-2 rounded-lg hover:bg-[#5a6c3f] flex items-center space-x-2">
-                <ArrowLeft size={16} />
-                <span>Back</span>
-              </Button>
-            </Link>
             <Image src="/images/logo.png" alt="Your Daily Meal" width={120} height={56} className="h-auto" />
           </div>
           <span className="text-[#4a5c2f] font-medium">Admin: {admin.name}</span>
@@ -124,8 +118,16 @@ export default function AdminSettingsPage() {
       <main className="flex-1 p-6">
         <div className="container mx-auto max-w-2xl">
           <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg p-8">
+            <div className="mb-6">
+              <Button
+                onClick={() => router.push("/admin/dashboard")}
+                className="bg-[#7a8c4f] text-white px-4 py-2 rounded-lg hover:bg-[#5a6c3f] flex items-center space-x-2"
+              >
+                <ArrowLeft size={16} />
+                <span>Back</span>
+              </Button>
+            </div>
             <h1 className="text-3xl font-bold text-[#4a5c2f] mb-8 text-center">Pengaturan Admin</h1>
-
             {message && (
               <div
                 className={`mb-6 p-4 rounded-lg ${

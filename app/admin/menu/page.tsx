@@ -4,7 +4,6 @@ import type React from "react"
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -29,6 +28,7 @@ export default function AdminMenuPage() {
   const [showAddForm, setShowAddForm] = useState(false)
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string>("")
+  const [notification, setNotification] = useState("")
 
   const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
 
@@ -157,8 +157,19 @@ export default function AdminMenuPage() {
     const updatedItems = allItems.map((item: MenuItem) => (item.id === itemId ? { ...item, ...updatedData } : item))
 
     localStorage.setItem("adminMenu", JSON.stringify(updatedItems))
+
+    // Trigger storage event for other tabs/windows
+    window.dispatchEvent(
+      new StorageEvent("storage", {
+        key: "adminMenu",
+        newValue: JSON.stringify(updatedItems),
+      }),
+    )
+
     loadMenuItems()
     setEditingItem(null)
+    setNotification("Menu berhasil diupdate!")
+    setTimeout(() => setNotification(""), 3000)
   }
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -191,11 +202,21 @@ export default function AdminMenuPage() {
     allItems.push(newMenuItem)
     localStorage.setItem("adminMenu", JSON.stringify(allItems))
 
+    // Trigger storage event for other tabs/windows
+    window.dispatchEvent(
+      new StorageEvent("storage", {
+        key: "adminMenu",
+        newValue: JSON.stringify(allItems),
+      }),
+    )
+
     setNewItem({ name: "", price: "", image: "", category: "main" })
     setImageFile(null)
     setImagePreview("")
     setShowAddForm(false)
     loadMenuItems()
+    setNotification("Menu baru berhasil ditambahkan!")
+    setTimeout(() => setNotification(""), 3000)
   }
 
   const deleteMenuItem = (itemId: string) => {
@@ -206,7 +227,18 @@ export default function AdminMenuPage() {
 
     const updatedItems = allItems.filter((item: MenuItem) => item.id !== itemId)
     localStorage.setItem("adminMenu", JSON.stringify(updatedItems))
+
+    // Trigger storage event for other tabs/windows
+    window.dispatchEvent(
+      new StorageEvent("storage", {
+        key: "adminMenu",
+        newValue: JSON.stringify(updatedItems),
+      }),
+    )
+
     loadMenuItems()
+    setNotification("Menu berhasil dihapus!")
+    setTimeout(() => setNotification(""), 3000)
   }
 
   if (!admin) {
@@ -232,6 +264,10 @@ export default function AdminMenuPage() {
           <span className="text-[#4a5c2f] font-medium">Admin: {admin.name}</span>
         </div>
       </header>
+
+      {notification && (
+        <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">{notification}</div>
+      )}
 
       <main className="flex-1 p-6">
         <div className="container mx-auto">

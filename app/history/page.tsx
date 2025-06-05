@@ -22,158 +22,6 @@ interface Order {
   status: "pending" | "confirmed" | "delivered" | "cancelled"
 }
 
-// Menu data untuk pengecekan ketersediaan
-const menuData = [
-  // Monday
-  {
-    day: "Monday",
-    items: [
-      [
-        { id: "m1-1", name: "Nasi Putih", image: "/images/nasi-putih.png", price: 5000 },
-        { id: "m1-2", name: "Nasi Merah", image: "/images/nasi-merah.png", price: 5500 },
-        { id: "m1-3", name: "Ayam Woku", image: "/images/ayam-woku.png", price: 19000 },
-        { id: "m1-4", name: "Sapi Lada Hitam", image: "/images/sapi-lada-hitam.png", price: 23000 },
-        { id: "m1-5", name: "Telur Barendo", image: "/images/telur-barendo.png", price: 14000 },
-      ],
-      [
-        { id: "m1-6", name: "Cah Brokoli", image: "/images/cah-brokoli.png", price: 8000 },
-        { id: "m1-7", name: "Tauge Ikan Asin", image: "/images/tauge-ikan-asin.png", price: 8000 },
-        { id: "m1-8", name: "Tempe Goreng", image: "/images/tempe-goreng.png", price: 6000 },
-        { id: "m1-9", name: "Sayur Bening", image: "/images/sayur-bening.png", price: 7500 },
-        { id: "m1-10", name: "Nila Goreng", image: "/images/nila-goreng.png", price: 18500 },
-      ],
-    ],
-  },
-  // Tuesday
-  {
-    day: "Tuesday",
-    items: [
-      [
-        { id: "m2-1", name: "Nasi Putih", image: "/images/nasi-putih.png", price: 5000 },
-        { id: "m2-2", name: "Mie Kuning", image: "/images/mie-kuning.png", price: 6500 },
-        { id: "m2-3", name: "Ayam Asam Manis", image: "/images/ayam-asam-manis.png", price: 19000 },
-        { id: "m2-4", name: "Sapi Panggang", image: "/images/sapi-panggang.png", price: 23000 },
-        { id: "m2-5", name: "Ikan Bakar", image: "/images/ikan-bakar.png", price: 18500 },
-      ],
-      [
-        { id: "m2-6", name: "Labu Siam", image: "/images/labu-siam.png", price: 8000 },
-        { id: "m2-7", name: "Bebek Goreng", image: "/images/bebek-goreng.png", price: 25000 },
-        { id: "m2-8", name: "Tahu Bacem", image: "/images/tahu-bacem.png", price: 6000 },
-        { id: "m2-9", name: "Kuah Oyong", image: "/images/kuah-oyong.png", price: 7500 },
-        { id: "m2-10", name: "Telur Balado", image: "/images/telur-balado.png", price: 5000 },
-      ],
-    ],
-  },
-  // Wednesday
-  {
-    day: "Wednesday",
-    items: [
-      [
-        { id: "m3-1", name: "Nasi putih", image: "/images/nasi-putih.png", price: 5000 },
-        { id: "m3-2", name: "Mie shirataki", image: "/images/mie-shirataki.png", price: 7500 },
-        { id: "m3-3", name: "Ayam Goreng", image: "/images/ayam-goreng.png", price: 13500 },
-        { id: "m3-4", name: "Rendang", image: "/images/rendang.png", price: 20000 },
-        { id: "m3-5", name: "Tuna Sawir", image: "/images/tuna-sawir.png", price: 18500 },
-      ],
-      [
-        { id: "m3-6", name: "Cah kangkung", image: "/images/cah-kangkung.png", price: 8000 },
-        { id: "m3-7", name: "Semur Daging", image: "/images/semur-daging.png", price: 25000 },
-        { id: "m3-8", name: "Tempe Orek", image: "/images/tempe-orek.png", price: 7000 },
-        { id: "m3-9", name: "Soto Lamongan", image: "/images/soto-lamongan.png", price: 15000 },
-        { id: "m3-10", name: "Bakwan Jagung", image: "/images/bakwan-jagung.png", price: 5000 },
-      ],
-    ],
-  },
-  // Thursday
-  {
-    day: "Thursday",
-    items: [
-      [
-        { id: "m4-1", name: "Nasi putih", image: "/images/nasi-putih.png", price: 5000 },
-        { id: "m4-2", name: "Nasi Goreng", image: "/images/nasi-goreng.png", price: 12500 },
-        { id: "m4-3", name: "Ayam Bakar", image: "/images/ayam-bakar.png", price: 13500 },
-        { id: "m4-4", name: "Tumis Sapi", image: "/images/tumis-sapi.png", price: 18000 },
-        { id: "m4-5", name: "Ikan Balado", image: "/images/ikan-balado.png", price: 16000 },
-      ],
-      [
-        { id: "m4-6", name: "Tumis Buncis", image: "/images/tumis-buncis.png", price: 8000 },
-        { id: "m4-7", name: "Ayam Kecap", image: "/images/ayam-kecap.png", price: 22000 },
-        { id: "m4-8", name: "Kentang Balado", image: "/images/kentang-balado.png", price: 7000 },
-        { id: "m4-9", name: "Sup Jagung", image: "/images/sup-jagung.png", price: 15000 },
-        { id: "m4-10", name: "Telur Mata Sapi", image: "/images/telur-mata-sapi.png", price: 5000 },
-      ],
-    ],
-  },
-  // Friday
-  {
-    day: "Friday",
-    items: [
-      [
-        { id: "m5-1", name: "Nasi putih", image: "/images/nasi-putih.png", price: 5000 },
-        { id: "m5-2", name: "Nasi Merah", image: "/images/nasi-merah.png", price: 5500 },
-        { id: "m5-3", name: "Ayam Geprek", image: "/images/ayam-geprek.png", price: 12500 },
-        { id: "m5-4", name: "Tongseng Sapi", image: "/images/tongseng-sapi.png", price: 18000 },
-        { id: "m5-5", name: "Nila Cabe Ijo", image: "/images/nila-cabe-ijo.png", price: 16000 },
-      ],
-      [
-        { id: "m5-6", name: "Sayur Lodeh", image: "/images/sayur-lodeh.png", price: 8000 },
-        { id: "m5-7", name: "Terong Balado", image: "/images/terong-balado.png", price: 10000 },
-        { id: "m5-8", name: "Jamur Goreng", image: "/images/jamur-goreng.png", price: 7000 },
-        { id: "m5-9", name: "Sayur Asem", image: "/images/sayur-asem.png", price: 10000 },
-        { id: "m5-10", name: "Tahu Goreng", image: "/images/tahu-goreng.png", price: 5000 },
-      ],
-    ],
-  },
-  // Saturday
-  {
-    day: "Saturday",
-    items: [
-      [
-        { id: "m6-1", name: "Nasi putih", image: "/images/nasi-putih.png", price: 5000 },
-        { id: "m6-2", name: "Ubi Cilembu", image: "/images/ubi-cilembu.png", price: 12500 },
-        { id: "m6-3", name: "Ayam Mentega", image: "/images/ayam-mentega.png", price: 16500 },
-        { id: "m6-4", name: "Sate Sapi", image: "/images/sate-sapi.png", price: 15000 },
-        { id: "m6-5", name: "Nila Bakar", image: "/images/nila-bakar.png", price: 18500 },
-      ],
-      [
-        { id: "m6-6", name: "Cah Timun Udang", image: "/images/cah-timun-udang.png", price: 10000 },
-        { id: "m6-7", name: "Terong Balado", image: "/images/terong-balado.png", price: 10000 },
-        { id: "m6-8", name: "Usus Bakar", image: "/images/usus-bakar.png", price: 5000 },
-        { id: "m6-9", name: "Sayur Sop", image: "/images/sayur-sop.png", price: 10000 },
-        { id: "m6-10", name: "Telur Kecap", image: "/images/telur-kecap.png", price: 5000 },
-      ],
-    ],
-  },
-  // Sunday
-  {
-    day: "Sunday",
-    items: [
-      [
-        { id: "m7-1", name: "Nasi putih", image: "/images/nasi-putih.png", price: 5000 },
-        { id: "m7-2", name: "Nasi Uduk", image: "/images/nasi-uduk.png", price: 7500 },
-        { id: "m7-3", name: "Ayam Taliwang", image: "/images/ayam-taliwang.png", price: 18000 },
-        { id: "m7-4", name: "Sapi Lada Hitam", image: "/images/sapi-lada-hitam.png", price: 23000 },
-        { id: "m7-5", name: "Gurame Bakar", image: "/images/gurame-bakar.png", price: 25000 },
-      ],
-      [
-        { id: "m7-6", name: "Tumis Kacang Panjang", image: "/images/tumis-kacang-panjang.png", price: 8000 },
-        { id: "m7-7", name: "Pepes Ikan", image: "/images/pepes-ikan.png", price: 15000 },
-        { id: "m7-8", name: "Tahu Isi", image: "/images/tahu-isi.png", price: 7000 },
-        { id: "m7-9", name: "Sayur Bayam", image: "/images/sayur-bayam.png", price: 8000 },
-        { id: "m7-10", name: "Perkedel Kentang", image: "/images/perkedel-kentang.png", price: 5000 },
-      ],
-    ],
-  },
-]
-
-// Additional items (sambal) - always available
-const additionalItems = [
-  { id: "a1", name: "Sambal Matah", image: "/images/sambal-matah.png", price: 2500 },
-  { id: "a2", name: "Sambal Bawang", image: "/images/sambal-bawang.png", price: 2500 },
-  { id: "a3", name: "Sambal Terasi", image: "/images/sambal-terasi.png", price: 2500 },
-  { id: "a4", name: "Sambal Ijo", image: "/images/sambal-ijo.png", price: 2500 },
-]
-
 export default function HistoryPage() {
   const [user, setUser] = useState<any>(null)
   const [orders, setOrders] = useState<Order[]>([])
@@ -188,14 +36,17 @@ export default function HistoryPage() {
     }
     setUser(JSON.parse(userData))
 
-    // Get user-specific orders from localStorage
+    // Get ONLY real user-specific orders from localStorage
     const userOrdersKey = `orders_${JSON.parse(userData).email}`
     const storedOrders = localStorage.getItem(userOrdersKey)
     if (storedOrders) {
       try {
         const parsedOrders = JSON.parse(storedOrders)
-        // Sort orders by date (newest first)
-        const sortedOrders = parsedOrders.sort(
+        // Validate orders have required fields and sort by date
+        const validOrders = parsedOrders.filter(
+          (order: Order) => order.id && order.date && order.items && order.total !== undefined,
+        )
+        const sortedOrders = validOrders.sort(
           (a: Order, b: Order) => new Date(b.date).getTime() - new Date(a.date).getTime(),
         )
         setOrders(sortedOrders)
@@ -234,107 +85,8 @@ export default function HistoryPage() {
     return `${dayName}, ${day} ${month} ${year} - #${orderId}`
   }
 
-  const getTodayMenuIndex = () => {
-    const today = new Date().getDay()
-    // Sunday is 0 in JavaScript, but we have it as index 6 in our array
-    return today === 0 ? 6 : today - 1
-  }
-
-  const findItemInTodayMenu = (itemId: string, itemName: string) => {
-    const todayIndex = getTodayMenuIndex()
-    const todayMenu = menuData[todayIndex]
-
-    // Check in today's menu items
-    for (const row of todayMenu.items) {
-      for (const item of row) {
-        if (item.id === itemId || item.name === itemName) {
-          return item
-        }
-      }
-    }
-
-    // Check in additional items (always available)
-    for (const item of additionalItems) {
-      if (item.id === itemId || item.name === itemName) {
-        return item
-      }
-    }
-
-    return null
-  }
-
   const handleOrderAgain = (order: Order) => {
-    // Check if user is logged in
-    if (!user) {
-      router.push("/login")
-      return
-    }
-
-    // Check which items are available today
-    const availableItems: OrderItem[] = []
-    const unavailableItems: OrderItem[] = []
-
-    order.items.forEach((item: OrderItem) => {
-      const availableItem = findItemInTodayMenu(item.id, item.name)
-      if (availableItem) {
-        availableItems.push({
-          ...item,
-          price: availableItem.price, // Use current price
-          image: availableItem.image || "/placeholder.svg?height=48&width=48",
-        })
-      } else {
-        unavailableItems.push(item)
-      }
-    })
-
-    // If no items are available today
-    if (availableItems.length === 0) {
-      const days = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"]
-      const todayIndex = getTodayMenuIndex()
-      const todayName = days[todayIndex]
-
-      alert(`Maaf, tidak ada menu dari pesanan ini yang tersedia untuk hari ${todayName}.`)
-      return
-    }
-
-    // Add available items to cart
-    let cart = []
-    const existingCart = localStorage.getItem("cart")
-
-    if (existingCart) {
-      try {
-        cart = JSON.parse(existingCart)
-      } catch (e) {
-        console.error("Error parsing cart:", e)
-      }
-    }
-
-    // Add each available item to cart
-    availableItems.forEach((item) => {
-      cart.push({
-        id: item.id,
-        name: item.name,
-        price: item.price,
-        image: item.image,
-        quantity: 1,
-      })
-    })
-
-    // Save cart to localStorage
-    localStorage.setItem("cart", JSON.stringify(cart))
-
-    // Show success message with info about unavailable items
-    if (unavailableItems.length > 0) {
-      const unavailableNames = unavailableItems.map((item) => item.name).join(", ")
-      alert(
-        `Beberapa item berhasil ditambahkan ke keranjang! Namun, menu berikut tidak tersedia hari ini: ${unavailableNames}`,
-      )
-    } else {
-      alert(`Semua item berhasil ditambahkan ke keranjang!`)
-    }
-
-    // Optionally refresh the page to update cart count in navbar
-    window.location.reload()
+    alert("Tidak ada menu dari pesanan sebelumnya yang tersedia.")
   }
 
   if (!user) {

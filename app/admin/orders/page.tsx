@@ -15,6 +15,7 @@ interface Order {
   status: string
   date: string
   paymentMethod: string
+  paymentProof?: string
 }
 
 export default function AdminOrdersPage() {
@@ -25,6 +26,7 @@ export default function AdminOrdersPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
   const [statusFilter, setStatusFilter] = useState("all")
+  const [selectedPaymentProof, setSelectedPaymentProof] = useState<string | null>(null)
 
   useEffect(() => {
     // Check if admin is logged in
@@ -34,8 +36,46 @@ export default function AdminOrdersPage() {
       return
     }
     setAdmin(JSON.parse(adminData))
+
+    // Clean up any phantom data before loading
+    cleanupPhantomData()
     loadOrders()
   }, [router])
+
+  const cleanupPhantomData = () => {
+    // Remove any hardcoded dummy orders
+    const keysToRemove: string[] = []
+
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i)
+      if (key && key.startsWith("orders_")) {
+        try {
+          const orders = JSON.parse(localStorage.getItem(key) || "[]")
+          // Remove orders with dummy IDs like ORD-001
+          const cleanedOrders = orders.filter(
+            (order: any) =>
+              !order.id.includes("ORD-001") &&
+              !order.id.includes("dummy") &&
+              order.date &&
+              new Date(order.date).getTime() > 0,
+          )
+
+          if (cleanedOrders.length !== orders.length) {
+            if (cleanedOrders.length === 0) {
+              keysToRemove.push(key)
+            } else {
+              localStorage.setItem(key, JSON.stringify(cleanedOrders))
+            }
+          }
+        } catch (e) {
+          keysToRemove.push(key)
+        }
+      }
+    }
+
+    // Remove empty order arrays
+    keysToRemove.forEach((key) => localStorage.removeItem(key))
+  }
 
   useEffect(() => {
     // Filter orders based on search term and status
@@ -55,24 +95,72 @@ export default function AdminOrdersPage() {
   const loadOrders = () => {
     const allOrders: Order[] = []
 
-    // Get all user-specific orders from localStorage
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i)
-      if (key && key.startsWith("orders_")) {
-        try {
-          const userOrders = JSON.parse(localStorage.getItem(key) || "[]")
+    // Clear any phantom data first
+    try {
+      // Only get orders from localStorage that have valid user emails
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i)
+        if (key && key.startsWith("orders_") && key.includes("@")) {
           const userEmail = key.replace("orders_", "")
 
-          userOrders.forEach((order: any) => {
-            allOrders.push({
-              ...order,
-              userId: userEmail,
-            })
-          })
-        } catch (e) {
-          console.error("Error parsing orders:", e)
+          // Verify this user actually exists
+          const storedUsers = localStorage.getItem("ydm_users")
+          const users = storedUsers ? JSON.parse(storedUsers) : []
+          const userExists = users.some((user: any) => user.email === userEmail)
+
+          if (userExists) {
+            try {
+              const userOrders = JSON.parse(localStorage.getItem(key) || "[]")
+
+              // Only add orders that have all required fields and are valid
+              userOrders.forEach((order: any) => {
+                if (
+                  order.id &&
+                  order.date &&
+                  order.items &&
+                  Array.isArray(order.items) &&
+                  order.items.length > 0 &&
+                  typeof order.total === "number" &&
+                  order.total > 0 &&
+                  order.status
+                ) {
+                  allOrders.push({
+                    ...order,
+                    userId: userEmail,
+                  })
+                }
+              })
+            } catch (e) {
+              console.error("Error parsing orders for", userEmail, e)
+              // Remove invalid order data
+              localStorage.removeItem(key)
+            }
+          } else {
+            // Remove orders for non-existent users
+            localStorage.removeItem(key)
+          }
         }
       }
+
+      // Remove any phantom activeOrder
+      const activeOrder = localStorage.getItem("activeOrder")
+      if (activeOrder) {
+        try {
+          const parsedActiveOrder = JSON.parse(activeOrder)
+          // Check if this active order belongs to a real user with real orders
+          const userOrdersKey = `orders_${parsedActiveOrder.userId || "unknown"}`
+          const userOrders = JSON.parse(localStorage.getItem(userOrdersKey) || "[]")
+          const orderExists = userOrders.some((order: any) => order.id === parsedActiveOrder.id)
+
+          if (!orderExists) {
+            localStorage.removeItem("activeOrder")
+          }
+        } catch (e) {
+          localStorage.removeItem("activeOrder")
+        }
+      }
+    } catch (error) {
+      console.error("Error cleaning orders:", error)
     }
 
     // Sort by date (newest first)
@@ -121,6 +209,8 @@ export default function AdminOrdersPage() {
         return "bg-orange-500"
       case "delivery":
         return "bg-green-500"
+      case "completed":
+        return "bg-green-700"
       case "cancelled":
         return "bg-red-500"
       case "confirmed":
@@ -135,15 +225,17 @@ export default function AdminOrdersPage() {
       case "pending":
         return "Pending"
       case "order_placed":
-        return "Order Placed"
+        return "Order Diterima"
       case "cooking":
-        return "Cooking"
+        return "Sedang Dimasak"
       case "delivery":
-        return "Delivery"
+        return "Sedang Dikirim"
+      case "completed":
+        return "Selesai"
       case "cancelled":
         return "Cancelled"
       case "confirmed":
-        return "Confirmed"
+        return "Konfirmasi"
       default:
         return status
     }
@@ -198,10 +290,11 @@ export default function AdminOrdersPage() {
                 >
                   <option value="all">Semua Status</option>
                   <option value="pending">Pending</option>
-                  <option value="confirmed">Confirmed</option>
-                  <option value="order_placed">Order Placed</option>
-                  <option value="cooking">Cooking</option>
-                  <option value="delivery">Delivery</option>
+                  <option value="confirmed">Konfirmasi</option>
+                  <option value="order_placed">Order Diterima</option>
+                  <option value="cooking">Sedang Dimasak</option>
+                  <option value="delivery">Sedang Dikirim</option>
+                  <option value="completed">Selesai</option>
                   <option value="cancelled">Cancelled</option>
                 </select>
                 <div className="relative">
@@ -225,6 +318,7 @@ export default function AdminOrdersPage() {
                     <th className="px-4 py-3 text-left">Total</th>
                     <th className="px-4 py-3 text-left">Status</th>
                     <th className="px-4 py-3 text-left">Tanggal</th>
+                    <th className="px-4 py-3 text-left">Bukti Pembayaran</th>
                     <th className="px-4 py-3 text-left">Aksi</th>
                   </tr>
                 </thead>
@@ -240,6 +334,18 @@ export default function AdminOrdersPage() {
                       </td>
                       <td className="px-4 py-3 text-sm">{new Date(order.date).toLocaleDateString("id-ID")}</td>
                       <td className="px-4 py-3">
+                        {order.paymentProof ? (
+                          <Button
+                            onClick={() => setSelectedPaymentProof(order.paymentProof!)}
+                            className="bg-[#b3a278] text-white px-3 py-1 rounded text-sm"
+                          >
+                            Lihat Bukti
+                          </Button>
+                        ) : (
+                          <span className="text-gray-500 text-sm">Tidak ada</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
                         <div className="flex space-x-2">
                           <Button
                             onClick={() => setSelectedOrder(order)}
@@ -248,20 +354,6 @@ export default function AdminOrdersPage() {
                             <Eye size={14} />
                             <span>Detail</span>
                           </Button>
-                          {order.status !== "delivery" && order.status !== "cancelled" && (
-                            <select
-                              value={order.status}
-                              onChange={(e) => updateOrderStatus(order.id, e.target.value)}
-                              className="px-2 py-1 text-xs border border-gray-300 rounded"
-                            >
-                              <option value="pending">Pending</option>
-                              <option value="confirmed">Confirmed</option>
-                              <option value="order_placed">Order Placed</option>
-                              <option value="cooking">Cooking</option>
-                              <option value="delivery">Delivery</option>
-                              <option value="cancelled">Cancel</option>
-                            </select>
-                          )}
                         </div>
                       </td>
                     </tr>
@@ -282,7 +374,7 @@ export default function AdminOrdersPage() {
 
             {/* Summary */}
             <div className="mt-6 bg-[#f8f3e2] rounded-lg p-4">
-              <div className="grid grid-cols-1 md:grid-cols-6 gap-4 text-center">
+              <div className="grid grid-cols-1 md:grid-cols-7 gap-4 text-center">
                 <div>
                   <h3 className="text-2xl font-bold text-[#4a5c2f]">{orders.length}</h3>
                   <p className="text-[#7a8c4f]">Total Pesanan</p>
@@ -297,25 +389,31 @@ export default function AdminOrdersPage() {
                   <h3 className="text-2xl font-bold text-[#4a5c2f]">
                     {orders.filter((order) => order.status === "confirmed").length}
                   </h3>
-                  <p className="text-[#7a8c4f]">Confirmed</p>
+                  <p className="text-[#7a8c4f]">Konfirmasi</p>
                 </div>
                 <div>
                   <h3 className="text-2xl font-bold text-[#4a5c2f]">
                     {orders.filter((order) => order.status === "order_placed").length}
                   </h3>
-                  <p className="text-[#7a8c4f]">Order Placed</p>
+                  <p className="text-[#7a8c4f]">Order Diterima</p>
                 </div>
                 <div>
                   <h3 className="text-2xl font-bold text-[#4a5c2f]">
                     {orders.filter((order) => order.status === "cooking").length}
                   </h3>
-                  <p className="text-[#7a8c4f]">Cooking</p>
+                  <p className="text-[#7a8c4f]">Sedang Dimasak</p>
                 </div>
                 <div>
                   <h3 className="text-2xl font-bold text-[#4a5c2f]">
                     {orders.filter((order) => order.status === "delivery").length}
                   </h3>
-                  <p className="text-[#7a8c4f]">Delivery</p>
+                  <p className="text-[#7a8c4f]">Sedang Dikirim</p>
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold text-[#4a5c2f]">
+                    {orders.filter((order) => order.status === "completed").length}
+                  </h3>
+                  <p className="text-[#7a8c4f]">Selesai</p>
                 </div>
               </div>
             </div>
@@ -378,6 +476,19 @@ export default function AdminOrdersPage() {
                         <p className="text-sm text-gray-600">Metode Pembayaran</p>
                         <p>{selectedOrder.paymentMethod || "Transfer Bank"}</p>
                       </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Bukti Pembayaran</p>
+                        {selectedOrder.paymentProof ? (
+                          <Button
+                            onClick={() => setSelectedPaymentProof(selectedOrder.paymentProof!)}
+                            className="bg-[#b3a278] text-white px-3 py-1 rounded text-sm mt-1"
+                          >
+                            Lihat Bukti Pembayaran
+                          </Button>
+                        ) : (
+                          <p className="text-gray-500">Tidak ada bukti pembayaran</p>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -414,62 +525,91 @@ export default function AdminOrdersPage() {
               </div>
 
               {/* Update Status */}
-              {selectedOrder.status !== "delivery" && selectedOrder.status !== "cancelled" && (
-                <div className="mt-6 bg-[#f8f3e2] p-4 rounded-lg">
-                  <h3 className="font-semibold text-[#4a5c2f] mb-3">Update Status</h3>
-                  <div className="flex space-x-2 flex-wrap">
-                    <Button
-                      onClick={() => {
-                        updateOrderStatus(selectedOrder.id, "confirmed")
-                        setSelectedOrder({ ...selectedOrder, status: "confirmed" })
-                      }}
-                      className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
-                      disabled={selectedOrder.status !== "pending"}
-                    >
-                      Confirm Order
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        updateOrderStatus(selectedOrder.id, "order_placed")
-                        setSelectedOrder({ ...selectedOrder, status: "order_placed" })
-                      }}
-                      className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
-                      disabled={selectedOrder.status !== "confirmed"}
-                    >
-                      Accept Order
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        updateOrderStatus(selectedOrder.id, "cooking")
-                        setSelectedOrder({ ...selectedOrder, status: "cooking" })
-                      }}
-                      className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600"
-                      disabled={selectedOrder.status !== "order_placed"}
-                    >
-                      Sedang Dimasak
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        updateOrderStatus(selectedOrder.id, "delivery")
-                        setSelectedOrder({ ...selectedOrder, status: "delivery" })
-                      }}
-                      className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600"
-                      disabled={selectedOrder.status !== "cooking"}
-                    >
-                      Sedang Dikirim
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        updateOrderStatus(selectedOrder.id, "cancelled")
-                        setSelectedOrder({ ...selectedOrder, status: "cancelled" })
-                      }}
-                      className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
-                    >
-                      Cancel Order
-                    </Button>
+              {selectedOrder.status !== "delivery" &&
+                selectedOrder.status !== "cancelled" &&
+                selectedOrder.status !== "completed" && (
+                  <div className="mt-6 bg-[#f8f3e2] p-4 rounded-lg">
+                    <h3 className="font-semibold text-[#4a5c2f] mb-3">Update Status</h3>
+                    <div className="flex space-x-2 flex-wrap">
+                      <Button
+                        onClick={() => {
+                          updateOrderStatus(selectedOrder.id, "confirmed")
+                          setSelectedOrder({ ...selectedOrder, status: "confirmed" })
+                        }}
+                        className="bg-[#7a8c4f] text-white px-4 py-2 rounded-lg hover:bg-[#5a6c3f]"
+                        disabled={selectedOrder.status !== "pending"}
+                      >
+                        Confirm Order
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          updateOrderStatus(selectedOrder.id, "order_placed")
+                          setSelectedOrder({ ...selectedOrder, status: "order_placed" })
+                        }}
+                        className="bg-[#7a8c4f] text-white px-4 py-2 rounded-lg hover:bg-[#5a6c3f]"
+                        disabled={selectedOrder.status !== "confirmed"}
+                      >
+                        Accept Order
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          updateOrderStatus(selectedOrder.id, "cooking")
+                          setSelectedOrder({ ...selectedOrder, status: "cooking" })
+                        }}
+                        className="bg-[#7a8c4f] text-white px-4 py-2 rounded-lg hover:bg-[#5a6c3f]"
+                        disabled={selectedOrder.status !== "order_placed"}
+                      >
+                        Sedang Dimasak
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          updateOrderStatus(selectedOrder.id, "delivery")
+                          setSelectedOrder({ ...selectedOrder, status: "delivery" })
+                        }}
+                        className="bg-[#7a8c4f] text-white px-4 py-2 rounded-lg hover:bg-[#5a6c3f]"
+                        disabled={selectedOrder.status !== "cooking"}
+                      >
+                        Sedang Dikirim
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          updateOrderStatus(selectedOrder.id, "cancelled")
+                          setSelectedOrder({ ...selectedOrder, status: "cancelled" })
+                        }}
+                        className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
+                      >
+                        Cancel Order
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Payment Proof Modal */}
+      {selectedPaymentProof && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-bold text-[#4a5c2f]">Bukti Pembayaran</h2>
+                <Button
+                  onClick={() => setSelectedPaymentProof(null)}
+                  className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600"
+                >
+                  Tutup
+                </Button>
+              </div>
+
+              <div className="flex justify-center">
+                <img
+                  src={selectedPaymentProof || "/placeholder.svg"}
+                  alt="Payment Proof"
+                  className="max-w-full max-h-[70vh] object-contain rounded-lg shadow-lg"
+                />
+              </div>
             </div>
           </div>
         </div>

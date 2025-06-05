@@ -12,10 +12,10 @@ export default function OrderStatus({ orderId, currentStatus }: OrderStatusProps
   const [status, setStatus] = useState(currentStatus)
 
   useEffect(() => {
-    // Check for status updates from admin
+    // Check for status updates from admin - only for real orders
     const checkStatusUpdate = () => {
       const user = localStorage.getItem("user")
-      if (user) {
+      if (user && orderId) {
         const userData = JSON.parse(user)
         const userOrdersKey = `orders_${userData.email}`
         const orders = JSON.parse(localStorage.getItem(userOrdersKey) || "[]")
@@ -23,6 +23,10 @@ export default function OrderStatus({ orderId, currentStatus }: OrderStatusProps
 
         if (currentOrder && currentOrder.status !== status) {
           setStatus(currentOrder.status)
+        } else if (!currentOrder) {
+          // Order doesn't exist, remove active order
+          localStorage.removeItem("activeOrder")
+          window.location.reload()
         }
       }
     }
@@ -32,6 +36,28 @@ export default function OrderStatus({ orderId, currentStatus }: OrderStatusProps
 
     return () => clearInterval(interval)
   }, [orderId, status])
+
+  const handleOrderComplete = () => {
+    const user = localStorage.getItem("user")
+    if (user) {
+      const userData = JSON.parse(user)
+      const userOrdersKey = `orders_${userData.email}`
+      const orders = JSON.parse(localStorage.getItem(userOrdersKey) || "[]")
+
+      // Update order status to completed
+      const updatedOrders = orders.map((order: any) =>
+        order.id === orderId ? { ...order, status: "completed" } : order,
+      )
+
+      localStorage.setItem(userOrdersKey, JSON.stringify(updatedOrders))
+
+      // Remove active order to show "no orders" state
+      localStorage.removeItem("activeOrder")
+
+      // Reload the page to refresh the UI
+      window.location.reload()
+    }
+  }
 
   const getStatusStep = (status: string) => {
     switch (status) {
@@ -166,6 +192,19 @@ export default function OrderStatus({ orderId, currentStatus }: OrderStatusProps
           {status === "cooking" && "Chef sedang menyiapkan makanan Anda"}
           {status === "delivery" && "Pesanan Anda sedang dalam perjalanan"}
         </p>
+
+        {/* Complete Order Button for Delivery Status */}
+        {status === "delivery" && (
+          <div className="mt-6">
+            <button
+              onClick={handleOrderComplete}
+              className="bg-[#7a8c4f] text-white px-8 py-3 rounded-lg hover:bg-[#5a6c3f] transition-colors duration-200 font-semibold"
+            >
+              Diterima
+            </button>
+            <p className="text-xs text-[#4a5c2f] mt-2">Klik tombol ini jika pesanan sudah Anda terima</p>
+          </div>
+        )}
       </div>
     </div>
   )

@@ -35,38 +35,13 @@ export default function MenuPage() {
   const [user, setUser] = useState<any>(null)
   const [cartCount, setCartCount] = useState(0)
   const [animatingItems, setAnimatingItems] = useState<string[]>([])
-
-  const router = useRouter()
-
-  useEffect(() => {
-    // Check if user is logged in
-    const userData = localStorage.getItem("user")
-    if (userData) {
-      setUser(JSON.parse(userData))
-
-      // Get cart count from localStorage if exists
-      const storedCart = localStorage.getItem("cart")
-      if (storedCart) {
-        try {
-          const cartItems = JSON.parse(storedCart)
-          setCartCount(cartItems.length)
-        } catch (e) {
-          console.error("Error parsing cart data:", e)
-        }
-      }
-    }
-
-    // Set current day index based on actual day of week
-    const adjustedDayIndex = getTodayMenuIndex()
-    setCurrentDayIndex(adjustedDayIndex)
-    setTodayIndex(adjustedDayIndex)
-  }, [])
-
-  // Days of the week
-  const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
-
-  // Menu data for each day
-  const menuData: DayMenu[] = [
+  const [additionalItems, setAdditionalItems] = useState<AdditionalItem[]>([
+    { id: "a1", name: "Sambal Matah", image: "/images/sambal-matah.png", price: 2500 },
+    { id: "a2", name: "Sambal Bawang", image: "/images/sambal-bawang.png", price: 2500 },
+    { id: "a3", name: "Sambal Terasi", image: "/images/sambal-terasi.png", price: 2500 },
+    { id: "a4", name: "Sambal Ijo", image: "/images/sambal-ijo.png", price: 2500 },
+  ])
+  const [menuData, setMenuData] = useState<DayMenu[]>([
     // Monday
     {
       day: "Monday",
@@ -187,15 +162,12 @@ export default function MenuPage() {
         ],
       ],
     },
-  ]
+  ])
 
-  // Additional items (sambal)
-  const additionalItems: AdditionalItem[] = [
-    { id: "a1", name: "Sambal Matah", image: "/images/sambal-matah.png", price: 2500 },
-    { id: "a2", name: "Sambal Bawang", image: "/images/sambal-bawang.png", price: 2500 },
-    { id: "a3", name: "Sambal Terasi", image: "/images/sambal-terasi.png", price: 2500 },
-    { id: "a4", name: "Sambal Ijo", image: "/images/sambal-ijo.png", price: 2500 },
-  ]
+  const router = useRouter()
+
+  // Days of the week
+  const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
 
   const handlePrevDay = () => {
     if (isAnimating) return
@@ -301,6 +273,111 @@ export default function MenuPage() {
     // Saturday is 6, which maps to index 5 in our 6-day array
     return today === 6 ? 5 : today - 1
   }
+
+  const loadMenuItems = () => {
+    // Load menu items from admin's localStorage
+    const adminMenu = localStorage.getItem("adminMenu")
+    if (adminMenu) {
+      try {
+        const allItems = JSON.parse(adminMenu)
+        // Group items by day
+        const groupedMenu: { [key: string]: any[][] } = {}
+
+        days.forEach((day) => {
+          const dayItems = allItems.filter((item: any) => item.day === day)
+          // Group into rows of 5 items each
+          const rows = []
+          for (let i = 0; i < dayItems.length; i += 5) {
+            rows.push(dayItems.slice(i, i + 5))
+          }
+          groupedMenu[day] = rows
+        })
+
+        // Update menuData with admin's menu
+        const newMenuData = [...menuData] // Create a copy of the state
+        Object.keys(groupedMenu).forEach((day) => {
+          const dayIndex = days.indexOf(day)
+          if (dayIndex !== -1 && groupedMenu[day].length > 0) {
+            newMenuData[dayIndex].items = groupedMenu[day]
+          }
+        })
+        setMenuData(newMenuData) // Update the state with the new menu
+      } catch (e) {
+        console.error("Error parsing admin menu:", e)
+        // Fallback to default menu if error
+      }
+    }
+    // If no admin menu found, keep using default menu
+  }
+
+  const loadAdditionalItems = () => {
+    // Load additional items from admin's localStorage
+    const storedItems = localStorage.getItem("additionalItems")
+    if (storedItems) {
+      try {
+        const items = JSON.parse(storedItems)
+        // Convert admin's additional items format to user format
+        const formattedItems = items.map((item: any) => ({
+          id: item.id.toString(),
+          name: item.name,
+          image: item.image || `/images/sambal-bawang.png`,
+          price: item.price,
+        }))
+        setAdditionalItems(formattedItems)
+      } catch (e) {
+        console.error("Error parsing additional items:", e)
+        // Fallback to default items if error
+      }
+    }
+  }
+
+  useEffect(() => {
+    // Check if user is logged in
+    const userData = localStorage.getItem("user")
+    if (userData) {
+      setUser(JSON.parse(userData))
+
+      // Get cart count from localStorage if exists
+      const storedCart = localStorage.getItem("cart")
+      if (storedCart) {
+        try {
+          const cartItems = JSON.parse(storedCart)
+          setCartCount(cartItems.length)
+        } catch (e) {
+          console.error("Error parsing cart data:", e)
+        }
+      }
+    }
+
+    // Load menu from admin
+    loadMenuItems()
+
+    // Load additional items from admin
+    loadAdditionalItems()
+
+    // Set current day index based on actual day of week
+    const adjustedDayIndex = getTodayMenuIndex()
+    setCurrentDayIndex(adjustedDayIndex)
+    setTodayIndex(adjustedDayIndex)
+  }, [])
+
+  useEffect(() => {
+    // Listen for menu and additional items changes from admin
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "adminMenu") {
+        loadMenuItems()
+      }
+      if (e.key === "additionalItems") {
+        loadAdditionalItems()
+      }
+    }
+
+    window.addEventListener("storage", handleStorageChange)
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange)
+    }
+  }, [])
 
   return (
     <div className="flex flex-col min-h-screen">

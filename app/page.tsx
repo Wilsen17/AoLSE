@@ -11,7 +11,7 @@ import ThankYouPopup from "@/components/thank-you-popup"
 
 interface ActiveOrder {
   id: string
-  status: "placed" | "cooking" | "delivery" | "completed"
+  status: "pending" | "order_placed" | "cooking" | "delivery" | "completed"
 }
 
 interface Testimonial {
@@ -95,28 +95,43 @@ export default function HomePage() {
     if (userData) {
       setUser(JSON.parse(userData))
 
-      // Check for active order
+      // Check for active order - ONLY from localStorage, NO dummy data
       const storedActiveOrder = localStorage.getItem("activeOrder")
       if (storedActiveOrder) {
         try {
           const parsedOrder = JSON.parse(storedActiveOrder)
-          setActiveOrder(parsedOrder)
-          setHasActiveOrder(true)
+          // Verify this is a real order by checking if it exists in user's orders
+          const userEmail = JSON.parse(userData).email
+          const userOrdersKey = `orders_${userEmail}`
+          const userOrders = JSON.parse(localStorage.getItem(userOrdersKey) || "[]")
+
+          // Only show if order actually exists in user's order history
+          const orderExists = userOrders.find((order: any) => order.id === parsedOrder.id)
+          if (orderExists && orderExists.status !== "completed") {
+            setActiveOrder(parsedOrder)
+            setHasActiveOrder(true)
+          } else {
+            // Remove invalid active order
+            localStorage.removeItem("activeOrder")
+            setHasActiveOrder(false)
+            setActiveOrder(null)
+          }
         } catch (e) {
           console.error("Error parsing active order:", e)
-
-          // Mock active order if error
-          setActiveOrder({
-            id: "ORD-003",
-            status: "cooking",
-          })
-          setHasActiveOrder(true)
+          // Clear invalid data
+          localStorage.removeItem("activeOrder")
+          setHasActiveOrder(false)
+          setActiveOrder(null)
         }
       } else {
-        // No active order in localStorage
+        // No active order
         setHasActiveOrder(false)
         setActiveOrder(null)
       }
+    } else {
+      // Not logged in - definitely no orders
+      setHasActiveOrder(false)
+      setActiveOrder(null)
     }
   }, [])
 
@@ -505,23 +520,13 @@ export default function HomePage() {
           {/* Text Section */}
           <div className="flex-1 flex flex-col items-center md:items-start justify-center text-center md:text-left text-[#4a3f2d]">
             <h2 className="text-4xl font-bold mb-4">Siap praktis bareng kita ?</h2>
-            <p className="text-xl mb-6">Klik order sekarang atau tanya AI assistant kami</p>
+            <p className="text-xl mb-6">Klik order sekarang untuk mulai menikmati makanan lezat kami</p>
             <div className="flex flex-wrap gap-4">
               <Button
                 onClick={() => (user ? router.push("/menu") : router.push("/login"))}
                 className="bg-[#7a8c4f] hover:bg-[#6a7c3e] text-white font-semibold text-lg px-6 py-3 rounded-lg shadow-md"
               >
                 Order Here
-              </Button>
-              <Button
-                onClick={() => {
-                  // Find and click the chat button
-                  const chatButton = document.querySelector('[data-chat-button="true"]') as HTMLButtonElement
-                  if (chatButton) chatButton.click()
-                }}
-                className="bg-[#DDB04E] hover:bg-[#C9A03E] text-[#4a5c2f] font-semibold text-lg px-6 py-3 rounded-lg shadow-md"
-              >
-                Ask AI Assistant
               </Button>
             </div>
 
@@ -569,7 +574,7 @@ export default function HomePage() {
               <Image src="/images/logo.png" alt="Your Daily Meal" width={100} height={50} className="h-auto" />
               <div className="text-[#4a5c2f]">
                 <h3 className="text-xl font-bold">FAQ</h3>
-                <p className="text-sm">Tanya AI assistant atau hubungi kami</p>
+                <p className="text-sm">Hubungi kami untuk pertanyaan</p>
               </div>
             </div>
             <div className="flex space-x-4">

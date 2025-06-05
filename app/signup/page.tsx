@@ -30,7 +30,6 @@ export default function SignupPage() {
       ...prev,
       [name]: value,
     }))
-    // Clear error when user types
     if (error) setError("")
     if (success) setSuccess("")
   }
@@ -41,51 +40,66 @@ export default function SignupPage() {
     setError("")
     setSuccess("")
 
-    console.log("Submitting signup form...")
-
     try {
-      console.log("Making API request to /api/auth/signup")
-      const response = await fetch("/api/auth/signup", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
+      // Validation
+      if (formData.password !== formData.confirmPassword) {
+        setError("Password dan konfirmasi password tidak cocok")
+        setIsLoading(false)
+        return
+      }
+
+      if (formData.password.length < 6) {
+        setError("Password minimal 6 karakter")
+        setIsLoading(false)
+        return
+      }
+
+      // Get existing users
+      const storedUsers = localStorage.getItem("ydm_users")
+      const users = storedUsers ? JSON.parse(storedUsers) : []
+
+      // Check if email exists
+      const existingUser = users.find((u: any) => u.email.toLowerCase() === formData.email.toLowerCase())
+      if (existingUser) {
+        setError("Email sudah terdaftar")
+        setIsLoading(false)
+        return
+      }
+
+      // Create new user
+      const newUser = {
+        id: `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        username: formData.username,
+        email: formData.email.toLowerCase(),
+        phone: formData.phone,
+        address: formData.address,
+        password: formData.password,
+        created_at: new Date().toISOString(),
+      }
+
+      // Add to users
+      users.push(newUser)
+      localStorage.setItem("ydm_users", JSON.stringify(users))
+
+      setSuccess("Akun berhasil dibuat! Mengalihkan ke halaman login...")
+
+      // Reset form
+      setFormData({
+        username: "",
+        email: "",
+        phone: "",
+        address: "",
+        password: "",
+        confirmPassword: "",
       })
 
-      console.log("Response status:", response.status)
-
-      if (!response.ok) {
-        const errorText = await response.text()
-        console.error("Response error:", errorText)
-        throw new Error(`HTTP ${response.status}: ${errorText}`)
-      }
-
-      const data = await response.json()
-      console.log("Response data:", data)
-
-      if (response.ok) {
-        setSuccess("Akun berhasil dibuat! Mengalihkan ke halaman login...")
-        // Reset form
-        setFormData({
-          username: "",
-          email: "",
-          phone: "",
-          address: "",
-          password: "",
-          confirmPassword: "",
-        })
-
-        // Redirect to login page with success parameter
-        setTimeout(() => {
-          router.push("/login?signup=success")
-        }, 2000)
-      } else {
-        setError(data.error || "Terjadi kesalahan")
-      }
+      // Redirect to login
+      setTimeout(() => {
+        router.push("/login?signup=success")
+      }, 2000)
     } catch (error) {
       console.error("Signup error:", error)
-      setError(`Terjadi kesalahan: ${error instanceof Error ? error.message : "Unknown error"}`)
+      setError("Terjadi kesalahan. Silakan coba lagi.")
     } finally {
       setIsLoading(false)
     }
@@ -109,12 +123,7 @@ export default function SignupPage() {
                 <Image src="/images/logo.png" alt="Your Daily Meal" width={200} height={100} className="h-auto" />
               </div>
 
-              {error && (
-                <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-                  <div className="font-bold">Error:</div>
-                  <div className="text-sm">{error}</div>
-                </div>
-              )}
+              {error && <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">{error}</div>}
 
               {success && (
                 <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">{success}</div>
@@ -134,7 +143,6 @@ export default function SignupPage() {
                     placeholder="Masukkan username"
                     required
                     disabled={isLoading}
-                    minLength={3}
                   />
                 </div>
 
@@ -202,7 +210,6 @@ export default function SignupPage() {
                     placeholder="Masukkan password"
                     required
                     disabled={isLoading}
-                    minLength={6}
                   />
                 </div>
 
@@ -220,7 +227,6 @@ export default function SignupPage() {
                     placeholder="Konfirmasi password"
                     required
                     disabled={isLoading}
-                    minLength={6}
                   />
                 </div>
 

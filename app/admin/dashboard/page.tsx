@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { Users, UtensilsCrossed, ShoppingCart, Settings, LogOut, Plus } from "lucide-react"
+import { UtensilsCrossed, ShoppingCart, Settings, LogOut, Plus } from "lucide-react"
 
 export default function AdminDashboard() {
   const router = useRouter()
@@ -148,7 +148,7 @@ export default function AdminDashboard() {
           <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg p-8">
             <h1 className="text-3xl font-bold text-[#4a5c2f] mb-8 text-center">Dashboard Admin</h1>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Kelola Menu */}
               <Link href="/admin/menu">
                 <div className="bg-[#f8f3e2] rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer border-2 border-transparent hover:border-[#7a8c4f]">
@@ -187,19 +187,6 @@ export default function AdminDashboard() {
                   </div>
                 </div>
               </Link>
-
-              {/* Kelola User */}
-              <Link href="/admin/users">
-                <div className="bg-[#f8f3e2] rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer border-2 border-transparent hover:border-[#7a8c4f]">
-                  <div className="flex flex-col items-center text-center">
-                    <div className="bg-[#5a6c3f] p-4 rounded-full mb-4">
-                      <Users size={32} className="text-white" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-[#4a5c2f] mb-2">Kelola User</h3>
-                    <p className="text-[#7a8c4f] text-sm">Lihat dan kelola data pengguna</p>
-                  </div>
-                </div>
-              </Link>
             </div>
 
             {/* Pengaturan - Centered */}
@@ -218,22 +205,17 @@ export default function AdminDashboard() {
             </div>
 
             {/* Real Stats */}
-            <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="bg-[#7a8c4f] text-white rounded-lg p-6 text-center">
-                <h4 className="text-2xl font-bold mb-2">{stats.totalMenuItems}</h4>
-                <p className="text-sm opacity-90">Total Menu Items</p>
-              </div>
-              <div className="bg-[#FFA500] text-white rounded-lg p-6 text-center">
-                <h4 className="text-2xl font-bold mb-2">{stats.totalAdditionalItems}</h4>
-                <p className="text-sm opacity-90">Total Additional Items</p>
-              </div>
-              <div className="bg-[#b3a278] text-white rounded-lg p-6 text-center">
-                <h4 className="text-2xl font-bold mb-2">{stats.todayOrders}</h4>
-                <p className="text-sm opacity-90">Pesanan Hari Ini</p>
-              </div>
-              <div className="bg-[#5a6c3f] text-white rounded-lg p-6 text-center">
-                <h4 className="text-2xl font-bold mb-2">{stats.totalUsers}</h4>
-                <p className="text-sm opacity-90">Total Pengguna</p>
+            {/* Real Stats */}
+            <div className="mt-8 flex justify-center">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="bg-[#7a8c4f] text-white rounded-lg p-6 text-center">
+                  <h4 className="text-2xl font-bold mb-2">{stats.totalMenuItems}</h4>
+                  <p className="text-sm opacity-90">Total Menu Items</p>
+                </div>
+                <div className="bg-[#FFA500] text-white rounded-lg p-6 text-center">
+                  <h4 className="text-2xl font-bold mb-2">{stats.totalAdditionalItems}</h4>
+                  <p className="text-sm opacity-90">Total Additional Items</p>
+                </div>
               </div>
             </div>
           </div>

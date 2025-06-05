@@ -1,5 +1,4 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { ServerStorage, hashPassword } from "@/lib/storage-manager"
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,33 +10,34 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Email dan password harus diisi" }, { status: 400 })
     }
 
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) {
-      return NextResponse.json({ error: "Format email tidak valid" }, { status: 400 })
-    }
+    // Simple approach - check localStorage directly in the API
+    // This works better for deployment
+    const users = JSON.parse(process.env.YDM_USERS || "[]")
 
     // Find user by email
-    const user = ServerStorage.findUserByEmail(email)
+    const user = users.find((u: any) => u.email.toLowerCase() === email.toLowerCase())
+
     if (!user) {
       return NextResponse.json({ error: "Email atau password salah" }, { status: 401 })
     }
 
-    // Verify password
-    const hashedPassword = await hashPassword(password)
-    if (hashedPassword !== user.password_hash) {
+    // Simple password check (for deployment compatibility)
+    if (user.password !== password) {
       return NextResponse.json({ error: "Email atau password salah" }, { status: 401 })
     }
 
-    // Return user data (without password hash)
-    const { password_hash: _, ...userResponse } = user
-
     return NextResponse.json({
-      message: "Login berhasil",
-      user: userResponse,
+      message: "Login berhasil!",
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        phone: user.phone,
+        address: user.address,
+      },
     })
   } catch (error) {
     console.error("Login error:", error)
-    return NextResponse.json({ error: "Terjadi kesalahan saat login" }, { status: 500 })
+    return NextResponse.json({ error: "Terjadi kesalahan server" }, { status: 500 })
   }
 }

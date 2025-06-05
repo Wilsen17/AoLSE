@@ -133,9 +133,31 @@ export default function CheckoutPage() {
   }
 
   const generateOrderId = () => {
-    // Get existing orders to determine next ID
-    const existingOrders = JSON.parse(localStorage.getItem("orders") || "[]")
-    const nextNumber = existingOrders.length + 1
+    // Get the highest order number from all users
+    let highestOrderNumber = 0
+
+    // Check all localStorage keys for orders
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i)
+      if (key && key.startsWith("orders_")) {
+        try {
+          const userOrders = JSON.parse(localStorage.getItem(key) || "[]")
+          userOrders.forEach((order: any) => {
+            if (order.id && order.id.startsWith("ORD-")) {
+              const orderNumber = Number.parseInt(order.id.split("-")[1])
+              if (orderNumber > highestOrderNumber) {
+                highestOrderNumber = orderNumber
+              }
+            }
+          })
+        } catch (e) {
+          console.error("Error parsing orders:", e)
+        }
+      }
+    }
+
+    // Generate next order number
+    const nextNumber = highestOrderNumber + 1
     return `ORD-${nextNumber.toString().padStart(3, "0")}`
   }
 
@@ -152,11 +174,11 @@ export default function CheckoutPage() {
     setShowPaymentPopup(true)
   }
 
-  const handlePaymentSubmit = () => {
+  const handlePaymentSubmit = (paymentProof?: string) => {
     // Generate a new order ID
     const orderId = generateOrderId()
 
-    // Create order object with image data
+    // Create order object with image data and payment proof
     const order = {
       id: orderId,
       date: new Date().toISOString(),
@@ -165,7 +187,7 @@ export default function CheckoutPage() {
         name: item.name,
         price: item.price,
         quantity: item.quantity,
-        image: item.image, // Include image in order
+        image: item.image,
       })),
       subtotal: getSubtotal(),
       voucher: selectedVoucher
@@ -175,7 +197,8 @@ export default function CheckoutPage() {
           }
         : null,
       total: getTotalPrice(),
-      status: "pending", // Changed from "confirmed" to "pending"
+      status: "pending",
+      paymentProof: paymentProof, // Add payment proof to order
     }
 
     // Save to localStorage per user - don't overwrite existing orders

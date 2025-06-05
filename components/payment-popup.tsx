@@ -10,12 +10,12 @@ import { X } from "lucide-react"
 interface PaymentPopupProps {
   isOpen: boolean
   onClose: () => void
-  onSubmit: () => void
+  onSubmit: (paymentProof?: string) => void
   totalAmount: number
 }
 
 export default function PaymentPopup({ isOpen, onClose, onSubmit, totalAmount }: PaymentPopupProps) {
-  const [paymentProof, setPaymentProof] = useState<File | null>(null)
+  const [paymentProof, setPaymentProof] = useState<string | null>(null)
 
   if (!isOpen) return null
 
@@ -34,7 +34,13 @@ export default function PaymentPopup({ isOpen, onClose, onSubmit, totalAmount }:
         return
       }
 
-      setPaymentProof(file)
+      // Convert to base64 for storage
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const result = e.target?.result as string
+        setPaymentProof(result)
+      }
+      reader.readAsDataURL(file)
     }
   }
 
@@ -44,9 +50,8 @@ export default function PaymentPopup({ isOpen, onClose, onSubmit, totalAmount }:
       return
     }
 
-    // Here you would normally upload the payment proof
-    // For now, we'll just call the onSubmit callback
-    onSubmit()
+    // Call onSubmit with the payment proof
+    onSubmit(paymentProof)
   }
 
   return (
@@ -102,7 +107,12 @@ export default function PaymentPopup({ isOpen, onClose, onSubmit, totalAmount }:
             {paymentProof && (
               <div className="mt-2 flex justify-center">
                 <div className="p-2 bg-green-100 rounded-lg inline-block">
-                  <p className="text-sm text-green-800 font-medium">✓ File uploaded: {paymentProof.name}</p>
+                  <p className="text-sm text-green-800 font-medium">✓ File uploaded</p>
+                  <img
+                    src={paymentProof || "/placeholder.svg"}
+                    alt="Payment Preview"
+                    className="mt-2 max-h-40 rounded"
+                  />
                 </div>
               </div>
             )}

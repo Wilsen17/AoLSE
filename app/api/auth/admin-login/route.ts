@@ -2,30 +2,44 @@ import { type NextRequest, NextResponse } from "next/server"
 
 export async function POST(request: NextRequest) {
   try {
+    console.log("Admin Login API called")
+
     const body = await request.json()
-    const { username, password } = body
+    console.log("Request body received:", { ...body, password: "[HIDDEN]" })
+
+    const { email, password } = body
 
     // Validation
-    if (!username || !password) {
-      return NextResponse.json({ error: "Username dan password harus diisi" }, { status: 400 })
+    if (!email || !password) {
+      console.log("Validation failed: Missing fields")
+      return NextResponse.json({ error: "Email dan password harus diisi" }, { status: 400 })
     }
 
-    // Hardcoded admin credentials for demo
-    if (username === "admin" && password === "admin123") {
+    // For demo purposes, hardcode admin credentials
+    // Accept both username and email for admin login
+    if ((email === "admin" || email === "admin@yourdailymeal.com") && password === "admin123") {
+      console.log("Admin login successful")
       return NextResponse.json({
-        message: "Login berhasil",
+        message: "Login berhasil!",
         admin: {
           id: "admin-1",
           name: "Administrator",
-          username: "admin",
+          email: "admin@yourdailymeal.com",
           role: "admin",
         },
       })
     }
 
-    return NextResponse.json({ error: "Username atau password salah" }, { status: 401 })
+    console.log("Invalid admin credentials")
+    return NextResponse.json({ error: "Email atau password salah" }, { status: 401 })
   } catch (error) {
     console.error("Admin login error:", error)
-    return NextResponse.json({ error: "Terjadi kesalahan saat login" }, { status: 500 })
+    return NextResponse.json(
+      {
+        error: "Terjadi kesalahan server",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 },
+    )
   }
 }

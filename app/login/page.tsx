@@ -22,13 +22,11 @@ export default function LoginPage() {
   const [showSignupSuccess, setShowSignupSuccess] = useState(signupSuccess)
 
   useEffect(() => {
-    // Check if there's a redirect path stored
     const storedRedirect = localStorage.getItem("redirectAfterLogin")
     if (storedRedirect) {
       setRedirectPath(storedRedirect)
     }
 
-    // Hide signup success message after 5 seconds
     if (signupSuccess) {
       const timer = setTimeout(() => {
         setShowSignupSuccess(false)
@@ -43,7 +41,7 @@ export default function LoginPage() {
     setError("")
 
     try {
-      // Default admin credentials for direct login without API
+      // Admin login
       if (email === "admin@yourdailymeal.com" && password === "admin123") {
         const adminData = {
           id: "admin-1",
@@ -51,74 +49,46 @@ export default function LoginPage() {
           name: "Admin YDM",
           role: "admin",
         }
-
-        // Store admin data in localStorage
         localStorage.setItem("admin", JSON.stringify(adminData))
-        alert("Login admin berhasil! Selamat datang, Admin.")
+        alert("Login admin berhasil!")
         router.push("/admin/dashboard")
         return
       }
 
-      // Try user login
-      // For demo purposes, let's create a default user if none exists
-      if (email === "user@example.com" && password === "password123") {
-        const userData = {
-          id: "user-1",
-          username: "Demo User",
-          email: "user@example.com",
-          phone: "081234567890",
-          address: "Jl. Demo User No. 123",
-        }
+      // Get users from localStorage
+      const storedUsers = localStorage.getItem("ydm_users")
+      const users = storedUsers ? JSON.parse(storedUsers) : []
 
-        // Store user data in localStorage
-        localStorage.setItem("user", JSON.stringify(userData))
-        alert("Login berhasil! Selamat datang.")
+      // Find user
+      const user = users.find((u: any) => u.email.toLowerCase() === email.toLowerCase() && u.password === password)
 
-        // Check if there's a redirect path
+      if (user) {
+        // Login success
+        localStorage.setItem(
+          "user",
+          JSON.stringify({
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            phone: user.phone,
+            address: user.address,
+          }),
+        )
+
+        alert("Login berhasil!")
+
         if (redirectPath) {
           localStorage.removeItem("redirectAfterLogin")
           router.push(redirectPath)
         } else {
           router.push("/")
         }
-
-        return
-      }
-
-      // If not using hardcoded credentials, try API
-      const userResponse = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      })
-
-      const userData = await userResponse.json()
-
-      if (userResponse.ok) {
-        // Store user data in localStorage
-        localStorage.setItem("user", JSON.stringify(userData.user))
-        alert("Login berhasil! Selamat datang.")
-
-        // Check if there's a redirect path
-        if (redirectPath) {
-          localStorage.removeItem("redirectAfterLogin")
-          router.push(redirectPath)
-        } else {
-          router.push("/")
-        }
-
-        // Force page refresh to update navbar
-        setTimeout(() => {
-          window.location.reload()
-        }, 100)
       } else {
-        setError(userData.error || "Email atau password salah")
+        setError("Email atau password salah. Pastikan Anda sudah mendaftar terlebih dahulu.")
       }
     } catch (error) {
       console.error("Error:", error)
-      setError("Terjadi kesalahan jaringan. Silakan coba lagi.")
+      setError("Terjadi kesalahan. Pastikan Anda sudah mendaftar terlebih dahulu.")
     } finally {
       setIsLoading(false)
     }

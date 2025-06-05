@@ -4,18 +4,9 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Eye, Search, RefreshCw } from "lucide-react"
+import { ArrowLeft, Eye, Search, Trash2 } from "lucide-react"
 import { Input } from "@/components/ui/input"
-
-interface User {
-  id: string
-  username: string
-  email: string
-  phone: string
-  address: string
-  created_at: string
-  updated_at: string
-}
+import { userStorage, type User } from "@/lib/user-storage"
 
 export default function AdminUsersPage() {
   const router = useRouter()
@@ -25,18 +16,30 @@ export default function AdminUsersPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [userToDelete, setUserToDelete] = useState<User | null>(null)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!mounted) return
+
     // Check if admin is logged in
-    const adminData = localStorage.getItem("admin")
-    if (!adminData) {
+    try {
+      const adminData = localStorage.getItem("admin")
+      if (!adminData) {
+        router.push("/admin/login")
+        return
+      }
+      setAdmin(JSON.parse(adminData))
+      loadUsers()
+    } catch (error) {
+      console.error("Error loading admin data:", error)
       router.push("/admin/login")
-      return
     }
-    setAdmin(JSON.parse(adminData))
-    loadUsers()
-  }, [router])
+  }, [router, mounted])
 
   useEffect(() => {
     // Filter users based on search term
@@ -55,30 +58,48 @@ export default function AdminUsersPage() {
 
   const loadUsers = async () => {
     setLoading(true)
-    setError(null)
     try {
-      const response = await fetch("/api/admin/users")
-      const data = await response.json()
-
-      if (response.ok) {
-        setUsers(data.users || [])
-        setFilteredUsers(data.users || [])
-      } else {
-        setError(data.error || "Gagal memuat data pengguna")
-      }
+      // Get users from our userStorage
+      const allUsers = await userStorage.getAllUsers()
+      setUsers(allUsers.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()))
+      setFilteredUsers(allUsers)
     } catch (error) {
       console.error("Error loading users:", error)
-      setError("Terjadi kesalahan saat memuat data")
     } finally {
       setLoading(false)
     }
   }
 
-  const handleRefresh = () => {
-    loadUsers()
+  const handleDeleteUser = async (userId: string) => {
+    try {
+      const success = await userStorage.deleteUser(userId)
+      if (success) {
+        // Remove from current state
+        setUsers(users.filter((user) => user.id !== userId))
+        setFilteredUsers(filteredUsers.filter((user) => user.id !== userId))
+        setUserToDelete(null)
+        alert("User berhasil dihapus!")
+      } else {
+        alert("Gagal menghapus user!")
+      }
+    } catch (error) {
+      console.error("Error deleting user:", error)
+      alert("Terjadi kesalahan saat menghapus user!")
+    }
   }
 
-  if (!admin) {
+  if (!mounted) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#4a5c2f] mx-auto"></div>
+          <p className="mt-4 text-[#4a5c2f]">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!admin && loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -121,7 +142,6 @@ export default function AdminUsersPage() {
                 <span>Back</span>
               </Button>
             </div>
-
             <div className="flex justify-between items-center mb-6">
               <h1 className="text-3xl font-bold text-[#4a5c2f]">Kelola Pengguna</h1>
               <div className="flex items-center space-x-2">
@@ -134,26 +154,11 @@ export default function AdminUsersPage() {
                     className="pl-10 w-64"
                   />
                 </div>
-                <Button
-                  onClick={handleRefresh}
-                  className="bg-[#7a8c4f] text-white hover:bg-[#5a6c3f] flex items-center space-x-2"
-                  disabled={loading}
-                >
-                  <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
-                  <span>Refresh</span>
+                <Button onClick={loadUsers} className="bg-[#7a8c4f] text-white hover:bg-[#5a6c3f]">
+                  Refresh
                 </Button>
               </div>
             </div>
-
-            {/* Error Message */}
-            {error && (
-              <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-                <p>{error}</p>
-                <Button onClick={handleRefresh} className="mt-2 bg-red-600 text-white hover:bg-red-700">
-                  Coba Lagi
-                </Button>
-              </div>
-            )}
 
             {/* Users Table */}
             <div className="overflow-x-auto">
@@ -172,30 +177,31 @@ export default function AdminUsersPage() {
                 <tbody>
                   {filteredUsers.map((user, index) => (
                     <tr key={user.id} className={index % 2 === 0 ? "bg-white" : "bg-[#f8f3e2]"}>
-                      <td className="px-4 py-3 text-sm font-mono">{user.id.slice(-8)}</td>
+                      <td className="px-4 py-3 text-sm">{user.id.toString().slice(-8)}</td>
                       <td className="px-4 py-3 font-medium text-[#4a5c2f]">{user.username}</td>
                       <td className="px-4 py-3 text-sm">{user.email}</td>
                       <td className="px-4 py-3 text-sm">{user.phone}</td>
                       <td className="px-4 py-3 text-sm max-w-xs truncate" title={user.address}>
                         {user.address}
                       </td>
-                      <td className="px-4 py-3 text-sm">
-                        {new Date(user.created_at).toLocaleDateString("id-ID", {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </td>
+                      <td className="px-4 py-3 text-sm">{new Date(user.created_at).toLocaleDateString("id-ID")}</td>
                       <td className="px-4 py-3">
-                        <Button
-                          onClick={() => setSelectedUser(user)}
-                          className="bg-[#b3a278] text-white px-3 py-1 rounded text-sm flex items-center space-x-1 hover:bg-[#9a8a65]"
-                        >
-                          <Eye size={14} />
-                          <span>Detail</span>
-                        </Button>
+                        <div className="flex space-x-2">
+                          <Button
+                            onClick={() => setSelectedUser(user)}
+                            className="bg-[#b3a278] text-white px-3 py-1 rounded text-sm flex items-center space-x-1"
+                          >
+                            <Eye size={14} />
+                            <span>Detail</span>
+                          </Button>
+                          <Button
+                            onClick={() => setUserToDelete(user)}
+                            className="bg-red-500 text-white px-3 py-1 rounded text-sm flex items-center space-x-1 hover:bg-red-600"
+                          >
+                            <Trash2 size={14} />
+                            <span>Delete</span>
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -203,52 +209,38 @@ export default function AdminUsersPage() {
               </table>
             </div>
 
-            {/* Empty State */}
-            {filteredUsers.length === 0 && !loading && !error && (
+            {filteredUsers.length === 0 && (
               <div className="text-center py-12">
-                <p className="text-gray-500 text-lg mb-4">
+                <p className="text-gray-500 text-lg">
                   {searchTerm
                     ? `Tidak ada pengguna yang ditemukan untuk "${searchTerm}"`
                     : "Belum ada pengguna terdaftar"}
                 </p>
-                <Button onClick={handleRefresh} className="bg-[#7a8c4f] text-white hover:bg-[#5a6c3f]">
-                  Refresh Data
-                </Button>
-              </div>
-            )}
-
-            {/* Loading State */}
-            {loading && (
-              <div className="text-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#4a5c2f] mx-auto"></div>
-                <p className="mt-4 text-gray-500">Memuat data pengguna...</p>
               </div>
             )}
 
             {/* Summary */}
-            {!loading && !error && (
-              <div className="mt-6 bg-[#f8f3e2] rounded-lg p-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-                  <div>
-                    <h3 className="text-2xl font-bold text-[#4a5c2f]">{users.length}</h3>
-                    <p className="text-[#7a8c4f]">Total Pengguna</p>
-                  </div>
-                  <div>
-                    <h3 className="text-2xl font-bold text-[#4a5c2f]">{filteredUsers.length}</h3>
-                    <p className="text-[#7a8c4f]">Hasil Pencarian</p>
-                  </div>
-                  <div>
-                    <h3 className="text-2xl font-bold text-[#4a5c2f]">
-                      {
-                        users.filter((user) => new Date(user.created_at).toDateString() === new Date().toDateString())
-                          .length
-                      }
-                    </h3>
-                    <p className="text-[#7a8c4f]">Daftar Hari Ini</p>
-                  </div>
+            <div className="mt-6 bg-[#f8f3e2] rounded-lg p-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                <div>
+                  <h3 className="text-2xl font-bold text-[#4a5c2f]">{users.length}</h3>
+                  <p className="text-[#7a8c4f]">Total Pengguna</p>
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold text-[#4a5c2f]">{filteredUsers.length}</h3>
+                  <p className="text-[#7a8c4f]">Hasil Pencarian</p>
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold text-[#4a5c2f]">
+                    {
+                      users.filter((user) => new Date(user.created_at).toDateString() === new Date().toDateString())
+                        .length
+                    }
+                  </h3>
+                  <p className="text-[#7a8c4f]">Daftar Hari Ini</p>
                 </div>
               </div>
-            )}
+            </div>
           </div>
         </div>
       </main>
@@ -274,7 +266,7 @@ export default function AdminUsersPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <p className="text-sm text-gray-600">ID Pengguna</p>
-                      <p className="font-medium font-mono">{selectedUser.id}</p>
+                      <p className="font-medium">{selectedUser.id}</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">Username</p>
@@ -311,20 +303,50 @@ export default function AdminUsersPage() {
                         })}
                       </p>
                     </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Terakhir Diupdate</p>
-                      <p className="font-medium">
-                        {new Date(selectedUser.updated_at).toLocaleDateString("id-ID", {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </p>
-                    </div>
                   </div>
                 </div>
+
+                <div className="bg-[#f8f3e2] p-4 rounded-lg">
+                  <h3 className="font-semibold text-[#4a5c2f] mb-3">Terakhir Diupdate</h3>
+                  <p className="font-medium">
+                    {new Date(selectedUser.updated_at || selectedUser.created_at).toLocaleDateString("id-ID", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {userToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full">
+            <div className="p-6">
+              <h2 className="text-xl font-bold text-[#4a5c2f] mb-4">Konfirmasi Hapus User</h2>
+              <p className="text-gray-700 mb-6">
+                Apakah Anda yakin ingin menghapus user <strong>{userToDelete.username}</strong>? Tindakan ini tidak
+                dapat dibatalkan.
+              </p>
+              <div className="flex space-x-4">
+                <Button
+                  onClick={() => handleDeleteUser(userToDelete.id)}
+                  className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
+                >
+                  Ya, Hapus
+                </Button>
+                <Button
+                  onClick={() => setUserToDelete(null)}
+                  className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600"
+                >
+                  Batal
+                </Button>
               </div>
             </div>
           </div>
